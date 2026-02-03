@@ -48,11 +48,17 @@ public class Flux : MonoBehaviour
     private Arrow fieldArrow;
     [SerializeField] private GameObject fieldArrowParent;
 
+    [SerializeField] private Material areaMaterial;
+    [SerializeField] private Material fieldMaterial;
+
     //[SerializeField] private GameObject fieldArrowHead;
     //[SerializeField] private GameObject fieldArrowTail;
 
     //[SerializeField] private Button pausePlayButton;
     //[SerializeField] private bool isPlaying = false;
+
+    [SerializeField] private GameObject APrefab;
+    [SerializeField] private GameObject EPrefab;
 
     private void Awake()
     {
@@ -88,7 +94,7 @@ public class Flux : MonoBehaviour
 
         float initialLength = Arrow.CalculateLengthByValue(area);
         //areaArrow = new Arrow(areaArrowAttachedTo, areaArrowHead, areaArrowTail, arrowheadDirection, initialLengthOfTail);
-        areaArrow = new Arrow(areaArrowAttachedTo, arrowheadDirection, initialLengthOfTail, relativeScale);
+        areaArrow = new Arrow(areaArrowAttachedTo, arrowheadDirection, initialLengthOfTail, relativeScale, headMaterial: areaMaterial, tailMaterial: areaMaterial, label3D: APrefab, labelScale: 0.05f, labelRotation: Quaternion.Euler(90, 0, -90), labelOffst: new Vector3(1f,0f,0f));
 
 
         //Setting up the sliders
@@ -101,7 +107,7 @@ public class Flux : MonoBehaviour
         fieldArrowParent.AddComponent<MeshFilter>();
 
         //fieldArrow = new Arrow(fieldArrowParent, fieldArrowHead, fieldArrowTail, new Vector3(0, 0, 1), arrowLength);
-        fieldArrow = new Arrow(fieldArrowParent, new Vector3(0, 0, 1), arrowLength, relativeScale);
+        fieldArrow = new Arrow(fieldArrowParent, new Vector3(0, 0, 1), arrowLength, relativeScale, headMaterial:fieldMaterial, tailMaterial:fieldMaterial, label3D:EPrefab, labelScale:0.05f, labelRotation: Quaternion.Euler(90, 0, 0), labelOffst:new Vector3(0f,0f,0f));
 
 
 
