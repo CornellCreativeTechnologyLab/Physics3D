@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 3
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 893ed957707fd564786cffa53b14ec6e, type: 2}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -96,7 +96,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 34fdbf7dfcbeeaf468991644dfa1c4c1, type: 2}
+  m_LightingDataAsset: {fileID: 112000000, guid: 09dd0f26a985140439a1cad03b36ede1, type: 2}
   m_LightingSettings: {fileID: 1113742352}
 --- !u!196 &4
 NavMeshSettings:
@@ -1408,7 +1408,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146916229}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.16051883, y: -0.6727711, z: 0.15299937, w: 0.70583564}
+  m_LocalRotation: {x: 0.18071543, y: -0.6627299, z: 0.16947411, w: 0.7066892}
   m_LocalPosition: {x: 0, y: 0, z: -136.93216}
   m_LocalScale: {x: 13.693216, y: 13.693214, z: 13.693214}
   m_ConstrainProportionsScale: 0
@@ -5994,11 +5994,11 @@ RectTransform:
   m_Children:
   - {fileID: 8353021920591180300}
   - {fileID: 1106159322}
-  m_Father: {fileID: 2085102508164150631}
+  m_Father: {fileID: 1330974487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -151, y: -90}
+  m_AnchoredPosition: {x: -134.99982, y: -38.200005}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &666304404
@@ -11447,6 +11447,7 @@ RectTransform:
   m_Children:
   - {fileID: 764344851}
   - {fileID: 1942382098}
+  - {fileID: 666304403}
   m_Father: {fileID: 2085102508164150631}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -13732,7 +13733,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1597144166}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.16051883, y: -0.67277116, z: 0.1529994, w: 0.70583564}
+  m_LocalRotation: {x: 0.18071544, y: -0.66273, z: 0.16947412, w: 0.7066891}
   m_LocalPosition: {x: 0, y: 0, z: -136.93216}
   m_LocalScale: {x: 0.78000003, y: 0.65999997, z: 1}
   m_ConstrainProportionsScale: 0
@@ -17175,6 +17176,7 @@ MonoBehaviour:
   zoomSpeedMouse: 60
   zoomSpeedTouch: 30
   rotationSpeed: 4
+  targetDist: 0
 --- !u!1 &2060019158
 GameObject:
   m_ObjectHideFlags: 0
@@ -19925,7 +19927,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 666304403}
   - {fileID: 1330974487}
   - {fileID: 618944992}
   - {fileID: 378345243}
