@@ -12,11 +12,11 @@ using System;
 public class CurrentGSSize
 {
     public float? _length;
-    public float?_radius;
+    public float? _radius;
     public float? _height;
     public float? _width;
     public string _name;
-    public CurrentGSSize(float? length=null, float? width = null, float? height=null, float? radius=null, string name=null)
+    public CurrentGSSize(float? length = null, float? width = null, float? height = null, float? radius = null, string name = null)
     {
         this._length = length;
         this._radius = radius;
@@ -34,7 +34,8 @@ public class CurrentGSSize
     {
         return this._name;
     }
-    public float? getRadius() {
+    public float? getRadius()
+    {
         return this._radius;
     }
 
@@ -51,11 +52,11 @@ public class CurrentGSSize
 
 public class CurrentChargeSize
 {
-    public float? _radius; 
-    public float? _length; 
-    public float? _width; 
-    public float? _height; 
-    public string _name; 
+    public float? _radius;
+    public float? _length;
+    public float? _width;
+    public float? _height;
+    public string _name;
 
     // Constructor to initialize
     public CurrentChargeSize(float? radius = null, float? length = null, float? width = null, float? height = null, string name = "")
@@ -98,6 +99,7 @@ public class Control : MonoBehaviour
     [SerializeField] public Toggle noGSToggle;
     [SerializeField] public Toggle sphereGSToggle;
     [SerializeField] public Toggle cylinderGSToggle;
+    [SerializeField] public Toggle cylinder2GSToggle; // --- ADDED THIS ---
     [SerializeField] public Toggle cubeGSToggle;
 
     [Header("Sphere GS Controls")]
@@ -130,7 +132,7 @@ public class Control : MonoBehaviour
     public (Slider, TMP_InputField)[] gsLength;
 
     [SerializeField] public Material defaultChargeMaterial;
-    [SerializeField] public Material smallChargeMaterial;    
+    [SerializeField] public Material smallChargeMaterial;
 
 
     public List<GameObject> focusCharge;
@@ -201,8 +203,14 @@ public class Control : MonoBehaviour
 
         noGSToggle.onValueChanged.AddListener(delegate { OnNoGSToggleOn(); });
         sphereGSToggle.onValueChanged.AddListener(delegate { OnSphereGSToggleOn(); });
+
+        // --- FIXED TOGGLE LISTENERS ---
         cylinderGSToggle.onValueChanged.AddListener(delegate { OnCylinder1GSToggleOn(); });
-        cylinderGSToggle.onValueChanged.AddListener(delegate { OnCylinder2GSToggleOn(); });
+        if (cylinder2GSToggle != null)
+            cylinder2GSToggle.onValueChanged.AddListener(delegate { OnCylinder2GSToggleOn(); });
+        else
+            Debug.LogError("Cylinder 2 Toggle is not assigned in the Inspector!");
+
         cubeGSToggle.onValueChanged.AddListener(delegate { OnCubeGSToggleOn(); });
 
         foreach (var (sizeSlider, sizeInput) in gsRadius)
@@ -220,15 +228,13 @@ public class Control : MonoBehaviour
 
     void Update()
     {
-        
         //UpdateChargeSize();
-
     }
 
     void OnNoChargeToggleOn()
     {
-        chargeT = ChargeType.noCharge; 
-        UpdateActiveObject(); 
+        chargeT = ChargeType.noCharge;
+        UpdateActiveObject();
     }
 
     void OnPointChargeToggleOn()
@@ -279,7 +285,7 @@ public class Control : MonoBehaviour
         UpdateActiveObject();
     }
 
-   public CurrentGSSize currentGaussSurfaceSize;
+    public CurrentGSSize currentGaussSurfaceSize;
     void UpdateActiveObject()
     {
 
@@ -338,7 +344,7 @@ public class Control : MonoBehaviour
                 Debug.Log("Planar!!!!");
                 break;
             case ChargeType.noCharge:
-                currentChargeSize = null; 
+                currentChargeSize = null;
                 break;
             default:
                 break;
@@ -404,43 +410,6 @@ public class Control : MonoBehaviour
                 }
             }
 
-            // If the conditions are met to change the material
-            //if (shouldChangeMaterial)
-            //{
-            //    // Change the material of the Gaussian surface (assuming sphere, cylinder, or cube)
-            //    switch (GaussSrfT)
-            //    {
-            //        case GaussSrfType.sphere:
-            //            sphereGS.GetComponent<Renderer>().material = smallChargeMaterial;
-            //            break;
-            //        case GaussSrfType.cylinder:
-            //            cylinderGS.GetComponent<Renderer>().material = smallChargeMaterial;
-            //            break;
-            //        case GaussSrfType.cube:
-            //            cubeGS.GetComponent<Renderer>().material = smallChargeMaterial;
-            //            break;
-            //        default:
-            //            break;
-            //    }
-            //}
-            //else
-            //{
-            //    // If no condition is met, restore the default material
-            //    switch (GaussSrfT)
-            //    {
-            //        case GaussSrfType.sphere:
-            //            sphereGS.GetComponent<Renderer>().material = defaultChargeMaterial;
-            //            break;
-            //        case GaussSrfType.cylinder:
-            //            cylinderGS.GetComponent<Renderer>().material = defaultChargeMaterial;
-            //            break;
-            //        case GaussSrfType.cube:
-            //            cubeGS.GetComponent<Renderer>().material = defaultChargeMaterial;
-            //            break;
-            //        default:
-            //            break;
-            //    }
-            //}
 
             if (shouldChangeMaterial)
             {
@@ -468,15 +437,14 @@ public class Control : MonoBehaviour
             case GaussSrfType.cylinder1:
                 cylinder1GS.transform.localScale = new Vector3(initScale * value, cylinder1GS.transform.localScale.y, initScale * value);
                 cylinder1RadiusInput.text = value.ToString();
-                cylinder1RadiusInput.text = value.ToString();
                 break;
             case GaussSrfType.cylinder2:
-                cylinder1GS.transform.localScale = new Vector3(initScale * value, cylinder1GS.transform.localScale.y, initScale * value);
-                cylinder2RadiusInput.text = value.ToString();
+                // --- FIXED: Use cylinder2GS here ---
+                cylinder2GS.transform.localScale = new Vector3(initScale * value, cylinder2GS.transform.localScale.y, initScale * value);
                 cylinder2RadiusInput.text = value.ToString();
                 break;
             case GaussSrfType.cube:
-                cubeGS.transform.localScale = new Vector3( cubeGS.transform.localScale.x, initScale * value, cubeGS.transform.localScale.z);
+                cubeGS.transform.localScale = new Vector3(cubeGS.transform.localScale.x, initScale * value, cubeGS.transform.localScale.z);
                 cubeRadiusInput.text = value.ToString();
                 break;
             default:
@@ -497,7 +465,8 @@ public class Control : MonoBehaviour
                 SetMaterialTransparency(cylinder1GS, alpha);
                 break;
             case GaussSrfType.cylinder2:
-                SetMaterialTransparency(cylinder1GS, alpha);
+                // --- FIXED: Use cylinder2GS here ---
+                SetMaterialTransparency(cylinder2GS, alpha);
                 break;
             case GaussSrfType.cube:
                 SetMaterialTransparency(cubeGS, alpha);
@@ -593,7 +562,8 @@ public class Control : MonoBehaviour
                 cylinder1LengthInput.text = value.ToString();
                 break;
             case GaussSrfType.cylinder2:
-                cylinder1GS.transform.localScale = new Vector3(cylinder1GS.transform.localScale.x, initScale * value, cylinder1GS.transform.localScale.z);
+                // --- FIXED: Use cylinder2GS here ---
+                cylinder2GS.transform.localScale = new Vector3(cylinder2GS.transform.localScale.x, initScale * value, cylinder2GS.transform.localScale.z);
                 cylinder2LengthInput.text = value.ToString();
                 break;
             case GaussSrfType.cube:
