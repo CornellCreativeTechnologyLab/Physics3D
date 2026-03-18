@@ -22,7 +22,9 @@ public class SpreadLinesPlanes : MonoBehaviour
     [SerializeField] private bool alsoTogglePrefabLineRenderer = true;
 
     [Header("Grid Settings")]
-    [SerializeField] private float halfExtent = 10f;
+    // CHANGE THIS: Replace 'float halfExtent' with a Vector2 for Width (X) and Height (Y)
+    [SerializeField] private Vector2 halfExtents = new Vector2(10f, 5f);
+
     [SerializeField] private float stepNumerator = 5f;
     [SerializeField] private Vector2 stepClamp = new Vector2(1f, 51f);
 
@@ -31,6 +33,8 @@ public class SpreadLinesPlanes : MonoBehaviour
 
     private readonly Queue<LineRenderer> pool = new();
     private readonly List<LineRenderer> active = new();
+
+
 
     private void Awake()
     {
@@ -43,19 +47,9 @@ public class SpreadLinesPlanes : MonoBehaviour
 
     private void ValidateRefs()
     {
-        if (!linePrefab) Debug.LogError($"{nameof(SpreadLines)}: Missing linePrefab.", this);
-        if (!poolContainer) Debug.LogError($"{nameof(SpreadLines)}: Missing poolContainer.", this);
-        if (!electricFieldSlider) Debug.LogError($"{nameof(SpreadLines)}: Missing electricFieldSlider.", this);
-    }
-
-    private void InitializePool(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            var lr = Instantiate(linePrefab, poolContainer);
-            lr.gameObject.SetActive(false);
-            pool.Enqueue(lr);
-        }
+        if (!linePrefab) Debug.LogError($"{nameof(SpreadLinesPlanes)}: Missing linePrefab.", this);
+        if (!poolContainer) Debug.LogError($"{nameof(SpreadLinesPlanes)}: Missing poolContainer.", this);
+        if (!electricFieldSlider) Debug.LogError($"{nameof(SpreadLinesPlanes)}: Missing electricFieldSlider.", this);
     }
 
     private void OnElectricFieldChanged(float value)
@@ -88,17 +82,24 @@ public class SpreadLinesPlanes : MonoBehaviour
     {
         ResetAndPoolAllLines();
 
-        Vector3 origin = linePrefab.transform.position;
-        float snapped = stepSize * Mathf.Floor(halfExtent / stepSize);
+        Vector3 origin = transform.position;
 
-        // Loop through the two dimensions of the grid
-        for (float i = -snapped; i <= snapped; i += stepSize)
+        // Calculate the number of steps independently for the X and Y axes
+        int stepsX = Mathf.FloorToInt(halfExtents.x / stepSize);
+        int stepsY = Mathf.FloorToInt(halfExtents.y / stepSize);
+
+        // Loop using the separate X and Y step boundaries
+        for (int x = -stepsX; x <= stepsX; x++)
         {
-            for (float j = -snapped; j <= snapped; j += stepSize)
+            for (int y = -stepsY; y <= stepsY; y++)
             {
+                // Calculate the offsets
+                float i = x * stepSize;
+                float j = y * stepSize;
+
                 LineRenderer lr = GetFromPool();
 
-                // Map the loop variables (i, j) to the chosen 3D plane
+                // Map the calculated offsets to the chosen 3D plane
                 Vector3 targetPos = Vector3.zero;
 
                 switch (spreadPlane)
@@ -119,9 +120,27 @@ public class SpreadLinesPlanes : MonoBehaviour
         }
     }
 
+    private void InitializePool(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            var lr = Instantiate(linePrefab, poolContainer);
+
+            // FORCE the scale to match your prefab exactly
+            lr.transform.localScale = linePrefab.transform.localScale;
+
+            lr.gameObject.SetActive(false);
+            pool.Enqueue(lr);
+        }
+    }
+
     private LineRenderer GetFromPool()
     {
         LineRenderer lr = pool.Count > 0 ? pool.Dequeue() : Instantiate(linePrefab, poolContainer);
+
+        // Ensure scale is correct even if we have to spawn a new one on the fly
+        lr.transform.localScale = linePrefab.transform.localScale;
+
         lr.gameObject.SetActive(true);
         active.Add(lr);
         return lr;
