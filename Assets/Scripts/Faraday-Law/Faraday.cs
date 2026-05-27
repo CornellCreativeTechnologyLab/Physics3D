@@ -59,6 +59,7 @@ public class Faraday : MonoBehaviour
     [SerializeField] private CurrentVisualizer currentVisualizer;
     [SerializeField] private Material areaMaterial;
     [SerializeField] private Material fieldMaterial;
+    [SerializeField] private float currentVisualizerMultiplier = 50f;
 
     [Header("Prefabs (Labels)")]
     [SerializeField] private GameObject APrefab; // Area Label
@@ -72,7 +73,7 @@ public class Faraday : MonoBehaviour
         Resistance = 10f;
 
         MagneticFieldSlider.minValue = 0f;
-        MagneticFieldSlider.maxValue = 10f;
+        MagneticFieldSlider.maxValue = 5f;
 
         lengthSlider.minValue = 1.0f;
         lengthSlider.maxValue = 2.0f;
@@ -95,6 +96,7 @@ public class Faraday : MonoBehaviour
 
     void Start()
     {
+        Awake();
         // 1. Safety check for attachment point
         if (areaArrowAttachedTo == null)
         {
@@ -400,11 +402,12 @@ public class Faraday : MonoBehaviour
     {
         float current = CurrentValue(Resistance);
         FaradayLawVariables.Current = current;
-        currentText.text = $"Current: " + current.ToString();
+        currentText.text = $"Current: " + current.ToString("F4"); // more decimals helps readability
 
         if (currentVisualizer != null)
         {
-            currentVisualizer.currentAmps = current;
+            // Scale only the visual — physics values stay correct
+            currentVisualizer.currentAmps = current * currentVisualizerMultiplier;
         }
     }
 
