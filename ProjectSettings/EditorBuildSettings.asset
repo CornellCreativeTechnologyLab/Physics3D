@@ -5,15 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/__AmperesLaw__.unity
     guid: dc8e995a26d5d7e43b83186cef8ac686
-  - enabled: 0
-    path: Assets/Scenes/Test_Hall.unity
-    guid: feba60a650ae1014cb277979af34dbf6
-  - enabled: 1
-    path: Assets/Scenes/__FaradayLaw__.unity
-    guid: f586e8b8838ebf649b356d0b0282d1bf
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bba8611bf206696468f7d94712b3ccc1, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: d0200304c3baea7489757e0f7ad0afb0, type: 2}
