@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EMAG-WAVES — Transition Video Scripts</title>
+<style>
+  body { font-family: Calibri, sans-serif; max-width: 900px; margin: 40px auto; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 28px; color: #1a3c5e; border-bottom: 3px solid #1a3c5e; padding-bottom: 8px; }
+  h2 { font-size: 22px; color: #2e6da4; margin-top: 40px; border-left: 5px solid #2e6da4; padding-left: 12px; }
+  h3 { font-size: 17px; color: #444; margin-top: 20px; }
+  .scene-block { background: #f5f8fc; border: 1px solid #c8d8ea; border-radius: 6px; padding: 18px 24px; margin-bottom: 32px; }
+  .tag { display: inline-block; background: #2e6da4; color: white; border-radius: 4px; padding: 2px 8px; font-size: 12px; margin-right: 4px; }
+  .physics { background: #fff8e1; border-left: 4px solid #f9a825; padding: 10px 16px; margin: 10px 0; font-family: monospace; font-size: 14px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  .bullet-important { color: #c0392b; font-weight: bold; }
+  .intro { background: #eaf4ea; border: 1px solid #a8d5a2; border-radius: 6px; padding: 16px 22px; margin-bottom: 30px; }
+  .footer { margin-top: 60px; font-size: 12px; color: #888; border-top: 1px solid #ccc; padding-top: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #2e6da4; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 7px 12px; border-bottom: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f2f7fc; }
+</style>
+</head>
+<body>
+
+<h1>EMAG-WAVES Unity Project — Transition Video Scripts</h1>
+
+<div class="intro">
+  <strong>Purpose:</strong> These are structured talking points for handoff/transition videos for each simulation scene in the EMAG-WAVES Unity project. Each section covers what the scene teaches, how it works under the hood, how the UI/controls function, key scripts and parameters, and things the next maintainer absolutely must know.<br><br>
+  <strong>Project path:</strong> s:\Unity\EMAG-WAVES<br>
+  <strong>Scenes folder:</strong> Assets/Scenes/Scenes/<br>
+  <strong>Scripts folder:</strong> Assets/Scripts/ (subfolders per scene)<br>
+  <strong>Scenes count:</strong> 7 scenes, 46 scripts
+</div>
+
+<!-- ==================== MAIN MENU ==================== -->
+<div class="scene-block">
+<h2>1. Main Menu — __MainMenu__.unity</h2>
+<h3>What to say in the video</h3>
+<ul>
+  <li>The main menu is the navigation hub. It has buttons that load each of the 6 simulation scenes.</li>
+  <li>The scene uses <strong>UIController.cs</strong> (in Assets/Scripts/Main/). It stores a list of <strong>ButtonScenePair</strong> objects — each pair maps a UI button to a scene name string.</li>
+  <li>To add a new scene: (1) build the scene, (2) add it to Build Settings, (3) drop the button into UIController's list and type the exact scene name.</li>
+  <li><strong>LoadScene.cs</strong> is an alternate version of the same logic — check which one is actually attached to the GameObject in the scene before editing.</li>
+  <li><strong>SceneReference.cs</strong> is a utility that stores the asset path at editor time so scene names don't break if scenes are renamed — use it if you want safer scene references in the future.</li>
+</ul>
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Purpose</th></tr>
+  <tr><td>UIController.cs</td><td>Assets/Scripts/Main/</td><td>Button → scene loading</td></tr>
+  <tr><td>LoadScene.cs</td><td>Assets/Scripts/Main/</td><td>Alternate scene loader</td></tr>
+  <tr><td>SceneReference.cs</td><td>Assets/Scripts/Main/</td><td>Safe editor-time scene path</td></tr>
+</table>
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">Scene names in UIController must exactly match the scene name in Build Settings — case-sensitive, no .unity extension.</li>
+  <li>If you rename a scene file, update the string in UIController immediately or the button will silently fail to load.</li>
+</ul>
+</div>
+
+<!-- ==================== EM WAVES ==================== -->
+<div class="scene-block">
+<h2>2. Electromagnetic Waves — __EMWaves__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>Visualizes a propagating electromagnetic wave in 3D — a red Electric field wave and a blue Magnetic field wave, perpendicular to each other, traveling along the Z-axis. Users can manipulate amplitude, wavelength, and frequency in real time.</p>
+
+<h3>Physics implemented</h3>
+<div class="physics">
+E(z,t) = A · sin(2π/λ · z − ω·t)   [Electric field, y-direction]<br>
+B(z,t) = A · sin(2π/λ · z − ω·t)   [Magnetic field, x-direction]<br>
+Wave speed = 2π · λ · f<br>
+k = 2π / λ   (stored in GlobalVariables.k)
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li>The main visualization is driven by <strong>EMWaveManager.cs</strong>. It creates a 3D grid of field points and places arrow objects at each one using the custom <strong>Arrow.cs</strong> class.</li>
+  <li>There are actually <em>two</em> visualization systems: <strong>EMWAVE.cs</strong> draws the classic single sine-wave line (the curved ribbon you see), while EMWaveManager places the vector arrows in the field grid. Know which GameObjects in the scene use which script.</li>
+  <li><strong>Object pooling</strong> is used in EMWaveManager — field point GameObjects are pre-allocated and reused. Do not destroy them at runtime. If arrows disappear, check the pool size (<code>waveRows</code>, <code>pointCountPerWave</code>).</li>
+  <li><strong>Distance culling</strong>: Field arrows far from the camera are automatically hidden for performance. This is controlled inside EMWaveManager — if you zoom way out and arrows disappear, that's intentional.</li>
+  <li><strong>Peak color highlighting</strong>: Arrow heads change color (darken) when the field is at a peak. This is handled in EMWaveManager's Update() loop — it calls <code>arrow.SetHeadColor()</code> on Arrow.cs.</li>
+  <li><strong>Constant wave speed option</strong>: There's a toggle that locks c = λ·f constant. When active, changing wavelength auto-adjusts frequency and vice versa. This is important for physics accuracy — mention it to future devs.</li>
+  <li><strong>GlobalVariables.cs</strong> is a static class that ALL scenes share. It holds lambda, omega, E0, B0, theta, k. It also controls the global pause state via <code>GlobalVariables.IsPaused</code>. If you change the pause logic, every scene is affected.</li>
+  <li>The <strong>Pause/Play button</strong> is handled by <strong>PausePlay_EM_Waves.cs</strong> — it flips <code>GlobalVariables.IsPaused</code> and updates button text.</li>
+  <li><strong>Reset button</strong>: <strong>ResetScript.cs</strong> shows a confirmation panel before reloading the scene. Every scene has this same reset flow.</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Range</th><th>Script Variable</th></tr>
+  <tr><td>Amplitude slider</td><td>0 – 10</td><td>EMWaveManager.amplitude / EMWAVE.amplitude</td></tr>
+  <tr><td>Wavelength slider</td><td>5 – 15 (EMWAVE) / 10–20 (Manager)</td><td>wavelength / GlobalVariables.lambda</td></tr>
+  <tr><td>Frequency slider</td><td>0 – 10 (EMWAVE) / 0–1 (Manager)</td><td>frequency / GlobalVariables.omega</td></tr>
+  <tr><td>Pause/Play button</td><td>—</td><td>GlobalVariables.IsPaused</td></tr>
+  <tr><td>Reset button</td><td>—</td><td>ResetScript (reloads scene)</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>EMWaveManager.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>3D vector field grid, pooling, culling</td></tr>
+  <tr><td>EMWAVE.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>Single sine-wave line renderer</td></tr>
+  <tr><td>GlobalVariables.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>Shared static variables + pause</td></tr>
+  <tr><td>PausePlay_EM_Waves.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>Pause toggle button</td></tr>
+  <tr><td>ResetScript.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>Confirm-then-reload reset</td></tr>
+  <tr><td>Arrow.cs</td><td>Assets/Assets/Arrow/</td><td>All vector arrow visuals (shared utility)</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">DistributePoints.cs in the same folder is a legacy/unused script — it does not run in the current scene. Don't delete it in case it has useful reference code, but don't be confused if you can't find a GameObject using it.</li>
+  <li>The two slider ranges (EMWAVE vs EMWaveManager) are different. If you change one, verify the other is consistent or it'll feel broken to users.</li>
+  <li>GlobalVariables is static — changes persist across scene loads within the same session unless you explicitly reset them.</li>
+</ul>
+</div>
+
+<!-- ==================== FARADAY'S LAW ==================== -->
+<div class="scene-block">
+<h2>3. Faraday's Law — __FaradayLaw__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>Shows a coil rotating in a magnetic field. As the coil rotates, the magnetic flux through it changes, which induces an EMF (voltage) and drives a current. Animated charge particles flow around the circuit loop to visualize the current direction.</p>
+
+<h3>Physics implemented</h3>
+<div class="physics">
+Magnetic Flux:    Φ = B · A · cos(θ)<br>
+Faraday's Law:    ε = −dΦ/dt   (EMF = rate of flux change)<br>
+Ohm's Law:        I = ε / R     (Resistance fixed at 10 Ω)<br>
+Area:             A = Length × Width
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li><strong>Faraday.cs</strong> is the main controller. It's an extension of the Flux scene concept — it adds time-dependence (the coil rotates) and computes the EMF as the numerical derivative of flux over time (<code>dΦ/dt</code> via frame-by-frame difference).</li>
+  <li>The rotating 3D object is a cube that represents the coil cross-section — it is NOT a real mesh coil, just a visual proxy. This is worth mentioning so the next dev doesn't go looking for a coil prefab.</li>
+  <li>The <strong>areaArrow</strong> (blue/green arrow) represents the normal to the coil surface — its direction shows you which way the coil is facing. The <strong>fieldArrow</strong> (red) shows the magnetic field direction. The angle between them determines flux.</li>
+  <li>Frequency slider controls how fast the coil rotates. At frequency = 0, the coil is stationary (flux is constant, EMF = 0). At high frequency, the EMF oscillates rapidly — great for showing the AC generator analogy.</li>
+  <li><strong>CurrentVisualizer.cs</strong> (in Assets/Assets/ChargePath/) animates the charge particles around the circuit loop. The speed of particles is proportional to the induced current magnitude. When current reverses sign, particles flow the other direction.</li>
+  <li><strong>CircuitLoop.cs</strong> defines the path the particles travel. It can generate an ellipse or polygon in any of the three cardinal planes. The waypoints are fed to CurrentVisualizer. If the circuit loop looks wrong, check CircuitLoop's orientation and shape settings in the Inspector.</li>
+  <li><strong>FaradayLawVariables.cs</strong> is a static store for the calculated Flux, EMF, and Current values. If you ever add a second UI element that needs these values elsewhere in the scene, read from here instead of recalculating.</li>
+  <li><strong>TestCurrentControl.cs</strong> is a debugging tool — it has a manual slider (−50 to +50 A) that overrides the current value going into CurrentVisualizer. It should be <em>disabled</em> in the production scene. Check that it's not accidentally active before a demo.</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Range</th><th>What it affects</th></tr>
+  <tr><td>Magnetic Field B</td><td>0 – 10 T</td><td>Flux magnitude</td></tr>
+  <tr><td>Length / Width sliders</td><td>1 – 2 m each</td><td>Coil area (A = L × W)</td></tr>
+  <tr><td>Rotation angle</td><td>0 – 360°</td><td>Coil orientation (manual)</td></tr>
+  <tr><td>Frequency</td><td>0 – 1 Hz</td><td>Auto-rotation speed</td></tr>
+  <tr><td>Displayed values</td><td>read-only</td><td>Flux, EMF, Current, Angle, Area</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>Faraday.cs</td><td>Assets/Scripts/Faraday-Law/</td><td>Main physics + UI controller</td></tr>
+  <tr><td>FaradayLawVariables.cs</td><td>Assets/Scripts/Faraday-Law/</td><td>Static shared values store</td></tr>
+  <tr><td>TestCurrentControl.cs</td><td>Assets/Scripts/Faraday-Law/</td><td>Debug override — should be OFF in prod</td></tr>
+  <tr><td>CurrentVisualizer.cs</td><td>Assets/Assets/ChargePath/Scripts/</td><td>Charge particle animation on loop</td></tr>
+  <tr><td>CircuitLoop.cs</td><td>Assets/Assets/ChargePath/Scripts/</td><td>Defines circuit path geometry</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">TestCurrentControl.cs must be DISABLED in the production scene — if it's active it overrides real current values and the visualization won't match the physics.</li>
+  <li>EMF is computed as a frame-by-frame numerical derivative (current frame flux minus previous frame flux, divided by Time.deltaTime). This means at very low frame rates, the EMF display can look jittery — this is a known limitation, not a bug.</li>
+  <li>Resistance is hardcoded at 10 Ω in Faraday.cs — it's not exposed as a slider. If you need to make it adjustable, add a slider and wire it to the resistance variable.</li>
+</ul>
+</div>
+
+<!-- ==================== AMPERE'S LAW ==================== -->
+<div class="scene-block">
+<h2>4. Ampere's Law — __AmperesLaw__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>Visualizes the Amperian loop — the closed path you integrate the magnetic field around in Ampere's Law. Users can choose different conductor geometries and different loop shapes, and see how the loop wraps around the conductor in 3D.</p>
+
+<h3>Physics context</h3>
+<div class="physics">
+Ampere's Law:   ∮ B · dl = μ₀ · I_enclosed<br>
+This scene visualizes the integration path (loop), not the field itself.
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li><strong>Amperes.cs</strong> is the sole main script. It is large — it handles conductor selection, loop selection, all UI, and all geometry generation in one file. Be prepared for a dense read.</li>
+  <li><strong>Conductor types</strong>: NoWire, Line (infinite straight wire), Sheet (planar current), Solenoid (helical coil), Toroid (donut shape). Each activates/deactivates different 3D model GameObjects in the scene — they are NOT generated procedurally, they are pre-placed prefabs/models toggled by this script.</li>
+  <li><strong>Loop types</strong>: Circle and Rectangle (Segment type is coded but ignored/skipped). These ARE generated procedurally by the script using LineRenderer. BuildCircle() and BuildRectangle() are the methods to look at if the loop geometry needs changing.</li>
+  <li>The loop can be placed on three planes (XZ/floor, XY/front, YZ/side) and rotated freely 0–360°. There's also a Z-offset slider to slide the loop along the axis so you can show it passing through or outside the conductor.</li>
+  <li>The UI has <strong>dimension panels</strong> that toggle visibility: when Circle is selected, only the radius/resolution panel shows; when Rectangle is selected, width/height/segment panels show. This is controlled by panel GameObject activation in Amperes.cs — if you add a new loop type, you'll need to add a new panel and wire it up.</li>
+  <li><strong>GetPointOnPlane()</strong> is a key helper method that takes a 2D (u, v) position and maps it into 3D space based on the selected orientation and rotation. All loop geometry goes through this. If the loop appears on the wrong plane or rotated wrong, this method is where to debug.</li>
+  <li>This scene does NOT numerically calculate ∮B·dl — it only shows the visualization path. If a future task is to add actual flux/circulation calculation, that's a new feature requiring Biot-Savart integration.</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Options / Range</th><th>Effect</th></tr>
+  <tr><td>Conductor type</td><td>NoWire / Line / Sheet / Solenoid / Toroid</td><td>Shows/hides conductor GameObjects</td></tr>
+  <tr><td>Loop type</td><td>None / Circle / Rectangle</td><td>Shows loop geometry via LineRenderer</td></tr>
+  <tr><td>Circle radius</td><td>0.1 – 10</td><td>Circle loop size</td></tr>
+  <tr><td>Circle resolution</td><td>3 – 200 points</td><td>Smoothness of circular loop</td></tr>
+  <tr><td>Rectangle W / H</td><td>0.1 – 10 each</td><td>Rectangle loop dimensions</td></tr>
+  <tr><td>Segments per edge</td><td>1 – 50</td><td>Subdivision of rectangle sides</td></tr>
+  <tr><td>Orientation</td><td>XZ / XY / YZ</td><td>Loop plane selection</td></tr>
+  <tr><td>Rotation</td><td>0 – 360°</td><td>Rotates loop in its plane</td></tr>
+  <tr><td>Z-offset</td><td>−5 to +5</td><td>Translates loop along axis</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>Amperes.cs</td><td>Assets/Scripts/AmperesLaw/</td><td>Everything — conductor, loop, UI, geometry</td></tr>
+  <tr><td>ResetScript.cs</td><td>Assets/Scripts/Waves-Scripts/</td><td>Shared reset (confirm → reload)</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">The Segment loop type exists in the enum but is explicitly skipped in the switch statement — don't expect it to do anything without adding implementation.</li>
+  <li>The conductor models must be pre-placed in the scene hierarchy as GameObjects. If a conductor model is accidentally deleted from the hierarchy, Amperes.cs will throw a NullReferenceException when that conductor type is selected.</li>
+  <li>This is the scene most likely to be incomplete — no actual Ampere's Law calculation is performed. Flag this clearly in the handoff.</li>
+</ul>
+</div>
+
+<!-- ==================== GAUSSIAN SURFACE ==================== -->
+<div class="scene-block">
+<h2>5. Gaussian Surface — __GaussianSurface__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>Gauss's Law: Shows how a Gaussian surface encloses a charge distribution, and how the enclosed charge determines the electric flux through the surface. Includes real-time field line visualization from the charge.</p>
+
+<h3>Physics implemented</h3>
+<div class="physics">
+Gauss's Law:       Φ = Q_enclosed / ε₀      (ε₀ = 8.854×10⁻¹² F/m)<br>
+Enclosed charge:   Q_enc = ρ × V_overlap     (charge density × overlapping volume)<br>
+Overlap volume:    Calculated geometrically between charge and surface colliders
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li><strong>Control.cs</strong> is the master controller for this scene. It handles which charge type is active and which Gaussian surface is active, and updates the scene in real time. It's important — don't confuse it with Unity's built-in Control class.</li>
+  <li><strong>Charge types</strong>: Point charge, Linear (line/cylinder), Planar (sheet), None. Each is a pre-placed GameObject that Control.cs activates/deactivates.</li>
+  <li><strong>Gaussian surface types</strong>: Sphere, Cylinder1, Cylinder2, Cube, None. Same activation/deactivation pattern.</li>
+  <li><strong>Transparency feedback</strong>: When the charge is larger than the Gaussian surface (so the surface is inside the charge), the transparency of the objects is swapped — the charge becomes more opaque and the surface becomes more transparent. This is a visual hint that the charge extends beyond the surface. This logic lives in Control.cs — look for the size comparison and material alpha changes.</li>
+  <li><strong>GaussianFlux.cs</strong> does the actual math. It uses the SphereCollider component on the objects to calculate the overlap volume between charge and surface. The <code>OverlappingVolume()</code> method is the geometric intersection calculation. The result feeds directly into the flux display.</li>
+  <li><strong>EFieldLines.cs</strong> generates the electric field lines. It uses three different generation strategies: (1) Fibonacci sphere distribution for point charges, (2) radial lines for cylinders, (3) perpendicular lines for planar charges. Field lines use object pooling — LineRenderer objects are pre-allocated. Lines are also frustum-culled (disabled when off-screen) for performance.</li>
+  <li><strong>UniformSphereDistribution.cs</strong> uses the golden angle / Fibonacci sphere formula to place exactly 100+ points uniformly on a sphere surface. This is used as the starting positions for the sphere's field lines. The formula is φ = π(3 − √5).</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Options</th><th>Effect</th></tr>
+  <tr><td>Charge type toggles</td><td>Point / Linear / Planar / None</td><td>Activates charge GameObject</td></tr>
+  <tr><td>Surface type toggles</td><td>Sphere / Cylinder1 / Cylinder2 / Cube / None</td><td>Activates surface GameObject</td></tr>
+  <tr><td>Radius slider</td><td>0.1 – 3</td><td>Scales charge/surface radius</td></tr>
+  <tr><td>Length slider</td><td>0.1 – 3</td><td>Scales charge/surface height</td></tr>
+  <tr><td>Displayed flux</td><td>read-only</td><td>Φ = Q_enc / ε₀</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>Control.cs</td><td>Assets/Scripts/GS-Scripts/</td><td>Master scene controller, transparency logic</td></tr>
+  <tr><td>GaussianFlux.cs</td><td>Assets/Scripts/GS-Scripts/</td><td>Overlap volume + flux calculation</td></tr>
+  <tr><td>EFieldLines.cs</td><td>Assets/Scripts/GS-Scripts/</td><td>Field line generation (3 strategies)</td></tr>
+  <tr><td>UniformSphereDistribution.cs</td><td>Assets/Scripts/GS-Scripts/</td><td>Fibonacci sphere point distribution</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">VolumeOverlap.cs and OverlapEvent.cs in this folder are fully commented out — they are old approaches replaced by the current logic. Don't uncomment them expecting them to work.</li>
+  <li>GaussianFlux.cs relies on SphereCollider bounds for geometry — if you switch a charge or surface object to a non-sphere mesh without updating the collider, the overlap calculation will be incorrect.</li>
+  <li>EFieldLines.cs culls lines when off-screen. If you're demoing and lines disappear while moving the camera, this is why — not a bug.</li>
+</ul>
+</div>
+
+<!-- ==================== GAUSSIAN FLUX ==================== -->
+<div class="scene-block">
+<h2>6. Gaussian Flux / Electric Flux — __GaussianFlux__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>A simpler, more direct demonstration of electric flux: Φ = E · A · cos(θ). A flat loop sits in a uniform electric field and users can control the field strength, loop area, and the angle between the field and the loop's normal vector.</p>
+
+<h3>Physics implemented</h3>
+<div class="physics">
+Electric Flux:    Φ = E · A · cos(θ − 90°)<br>
+Area:             A = Length × Width<br>
+Note: angle is measured from the loop normal to the field direction.
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li><strong>Flux.cs</strong> is the main script. Think of this as the simpler predecessor to the Faraday scene — same angle/area/field concept, but static (no time evolution or coil rotation unless you activate the auto-rotation).</li>
+  <li>There are two arrows: <strong>areaArrow</strong> (shows the surface normal vector, scaled by area magnitude) and <strong>fieldArrow</strong> (shows the E-field direction and magnitude). These are Arrow.cs instances — the same utility used across the whole project.</li>
+  <li>The <strong>angle</strong> displayed is the angle between the loop's normal and the X-axis, not the angle between the normal and the field. Keep this distinction in mind when explaining to students — the formula uses the angle between normal and field, which is derived internally.</li>
+  <li><strong>Snap points</strong>: The rotation has optional snap-to-angle behavior at key angles (0°, 90°, 180°, 270°). This helps students see the extreme cases (Φ = max at 0°, Φ = 0 at 90°). Check if snap is enabled in the Inspector.</li>
+  <li><strong>PausePlay.cs</strong> in this scene pauses the auto-rotation of the loop. Unlike the EM Waves pause, this one also disables the rotation sliders during pause to prevent conflicting input.</li>
+  <li><strong>AnglesBetweenVectors.cs</strong> is used to render the visual angle sector (the pie-slice shape you see between the field and normal arrows). It procedurally generates a sector mesh and can display the angle value. It's a self-contained utility.</li>
+  <li><strong>FieldLines.cs</strong> creates the background uniform E-field visualization — a 4-directional grid of parallel arrow lines (top, bottom, left, right of the viewport). This is purely cosmetic to represent the uniform external field.</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Range</th><th>Effect</th></tr>
+  <tr><td>E-field magnitude</td><td>0 – 10</td><td>Scales field arrow and flux value</td></tr>
+  <tr><td>Loop length</td><td>1 – 2 m</td><td>Scales area (A = L × W)</td></tr>
+  <tr><td>Loop width</td><td>1 – 2 m</td><td>Scales area</td></tr>
+  <tr><td>Rotation angle</td><td>0 – 360°</td><td>Rotates loop (and area arrow)</td></tr>
+  <tr><td>Auto-rotate / Pause</td><td>toggle</td><td>Animates loop spinning</td></tr>
+  <tr><td>Displayed values</td><td>read-only</td><td>Flux, angle, area</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>Flux.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Main controller, flux calculation</td></tr>
+  <tr><td>PausePlay.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Pause rotation + disable sliders</td></tr>
+  <tr><td>AnglesBetweenVectors.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Visual angle sector mesh</td></tr>
+  <tr><td>FieldLines.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Background uniform field lines</td></tr>
+  <tr><td>EFieldArrows.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Legacy/placeholder — minimal logic</td></tr>
+  <tr><td>ElectricFieldArrow.cs</td><td>Assets/Scripts/Flux-Scripts/</td><td>Single E-field arrow creation</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">The angle in Flux.cs is stored as the angle between the loop normal and the X-axis, NOT directly the angle between normal and E-field. The cos(θ − 90°) correction in the flux formula accounts for this. If you change the field direction, this offset must be revisited.</li>
+  <li>EFieldArrows.cs appears to be legacy/placeholder — it only collects child transforms. If you need multi-arrow management, check whether this script is actually doing anything before building on it.</li>
+</ul>
+</div>
+
+<!-- ==================== HALL EFFECT ==================== -->
+<div class="scene-block">
+<h2>7. Hall Effect — __HallEffect__.unity</h2>
+<h3>What the scene teaches</h3>
+<p>When a current-carrying conductor is placed in a perpendicular magnetic field, the charge carriers (electrons or holes) are deflected by the Lorentz force and accumulate on one side of the conductor. This creates a transverse voltage called the Hall voltage. Users can see this accumulation happen in real time with animated particles.</p>
+
+<h3>Physics implemented</h3>
+<div class="physics">
+Lorentz Force:    F = q(E + v × B)<br>
+Hall E-field:     E_Hall = −σ / ε     (σ = lateral charge surface density)<br>
+Net lateral force = q·E_Hall + q·v × B  →  equilibrium when they cancel<br>
+Carrier type: electrons (q = −e) deflect opposite to holes (q = +e)
+</div>
+
+<h3>What to say in the video</h3>
+<ul>
+  <li><strong>HallEffect.cs</strong> is the main and only controller script. It is the most complex script in the project — it handles particle emission, physics integration, pooling, and UI all in one file. Plan extra time for this section of the handoff.</li>
+  <li>The scene setup is two parallel plate objects (cathode and anode). Particles spawn on the cathode (or anode depending on carrier type) and drift toward the opposite plate, representing the flow of current through the conductor slab.</li>
+  <li><strong>Object pooling</strong>: 500 particles per carrier type are pre-allocated at Start(). Do NOT reduce this number without profiling first — the emission rate scales with voltage, so at high voltages you can exhaust the pool.</li>
+  <li>Particle emission is <strong>grid-based</strong>: 256 spawn positions are calculated on the cathode surface and shuffled randomly each emission cycle. This prevents visual clustering at the same point.</li>
+  <li><strong>Carrier type (Electron vs Hole)</strong>: Electrons have q = −e, holes have q = +e. Changing the carrier type reverses the direction of the Lorentz deflection — electrons accumulate on one side, holes on the other. This is the key teaching point of the Hall Effect.</li>
+  <li>The <strong>Hall E-field accumulation</strong> is simulated: as particles hit the side walls, they are counted and their charge contributes to a growing σ (surface charge density). This σ creates a counter-field E_Hall = σ/ε that eventually balances the Lorentz force, reaching equilibrium. You can watch the particle deflection decrease over time as this equilibrium builds up.</li>
+  <li><strong>Boundary condition</strong>: When a particle hits a lateral wall, it clamps to the wall and slides along it. When it hits the front/back face (anode), it returns to the pool and is marked inactive. This is important — "sliding on walls" behavior is intentional physics, not a bug.</li>
+  <li><strong>Relative permittivity</strong> is set to 11.7 (silicon) by default. This affects the strength of the Hall E-field counter-force. If you're modeling a different material, this is the parameter to change.</li>
+  <li><strong>ChargeParticle.cs</strong> is just a data class (no MonoBehaviour) — it holds each particle's CarrierType, Velocity, and Age. All actual movement logic is in HallEffect.cs.</li>
+  <li><strong>ChargeEmitter.cs</strong> is fully commented out — it was an older separate emission system. The current emission logic is entirely inside HallEffect.cs.</li>
+</ul>
+
+<h3>UI Controls summary</h3>
+<table>
+  <tr><th>Control</th><th>Range / Options</th><th>Effect</th></tr>
+  <tr><td>Voltage slider</td><td>varies</td><td>Controls emission rate + initial drift velocity</td></tr>
+  <tr><td>Magnetic field B</td><td>0 – 10</td><td>Lorentz force strength → deflection amount</td></tr>
+  <tr><td>Carrier type toggle</td><td>Electrons / Holes</td><td>Flips charge sign → reverses deflection direction</td></tr>
+  <tr><td>Relative permittivity</td><td>default 11.7 (Si)</td><td>Hall E-field strength (material property)</td></tr>
+  <tr><td>Displayed values</td><td>read-only</td><td>Hall voltage (accumulates over time)</td></tr>
+</table>
+
+<h3>Key scripts</h3>
+<table>
+  <tr><th>Script</th><th>Location</th><th>Role</th></tr>
+  <tr><td>HallEffect.cs</td><td>Assets/Scripts/HallEffect/</td><td>Main controller — everything lives here</td></tr>
+  <tr><td>ChargeParticle.cs</td><td>Assets/Scripts/HallEffect/</td><td>Data class for individual particles</td></tr>
+  <tr><td>ChargeEmitter.cs</td><td>Assets/Scripts/HallEffect/</td><td>LEGACY — fully commented out, ignore</td></tr>
+</table>
+
+<h3>Watch out for</h3>
+<ul>
+  <li class="bullet-important">The Max Hall E-field is clamped at 1×10⁶ V/m to prevent numerical explosion. If the Hall voltage display seems to plateau unexpectedly, this clamp is likely the reason.</li>
+  <li>Pool size is 500 per type (1000 total). At very high voltage settings, emission rate can exhaust this pool. If particles stop spawning despite high voltage, the pool is empty — either reduce emission sensitivity or increase pool size.</li>
+  <li>This is the newest scene (branch: ampere-halleffect) and may be the least tested. Prioritize thorough QA before finalizing the handoff.</li>
+  <li>ChargeEmitter.cs exists but is 100% commented out — don't spend time trying to understand it as part of the current system.</li>
+</ul>
+</div>
+
+<!-- ==================== SHARED UTILITIES ==================== -->
+<div class="scene-block">
+<h2>Shared Utilities — Know These for ANY Scene</h2>
+
+<h3>Arrow.cs — Universal Vector Visualization</h3>
+<ul>
+  <li>Location: Assets/Assets/Arrow/Arrow.cs</li>
+  <li>Used by EVERY scene that shows vector arrows (E-field, B-field, area normal, etc.).</li>
+  <li>Creates a head (cone) + tail (cylinder) programmatically. If prefabs are missing, it falls back to procedurally-generated meshes.</li>
+  <li>Supports optional 3D text labels that follow the arrowhead and maintain correct scale even when the parent is stretched.</li>
+  <li>Key method: <code>SetTailLength(float)</code> to resize the arrow dynamically. <code>SetHeadColor(Color)</code> for peak highlighting.</li>
+  <li class="bullet-important">Arrow.cs has try-catch blocks — if you see silent failures (arrow not appearing), check the Unity console for caught exceptions from this class.</li>
+</ul>
+
+<h3>CircuitLoop.cs + CurrentVisualizer.cs — Current Animation</h3>
+<ul>
+  <li>Location: Assets/Assets/ChargePath/Scripts/</li>
+  <li>Used by Faraday's Law scene (and potentially Ampere's Law in the future).</li>
+  <li>CircuitLoop generates waypoints; CurrentVisualizer moves particles along them at a speed proportional to current magnitude.</li>
+  <li>Speed formula: <code>speed = (currentAmps × sensitivity) / pathLength</code> per frame.</li>
+  <li>Particles wrap around the loop continuously — when a particle reaches the end of the waypoint list it resets to the start.</li>
+</ul>
+
+<h3>ResetScript.cs — Universal Reset</h3>
+<ul>
+  <li>Location: Assets/Scripts/Waves-Scripts/ResetScript.cs</li>
+  <li>Shared across all scenes. Shows a confirmation panel → reloads current scene.</li>
+  <li>On reset, all static variables (GlobalVariables) retain their last value until explicitly reset. If you need clean-state resets, add initialization code to each scene's Start() method.</li>
+</ul>
+
+<h3>GlobalVariables.cs — Cross-Scene State</h3>
+<ul>
+  <li>Location: Assets/Scripts/Waves-Scripts/GlobalVariables.cs</li>
+  <li>Static class — lives as long as the application runs.</li>
+  <li>Holds: lambda, omega, E0, B0, theta, k.</li>
+  <li>Controls the global pause via <code>GlobalVariables.IsPaused</code>.</li>
+  <li class="bullet-important">Because it's static, values from EM Waves scene carry over if the user navigates to another scene without restarting. Each scene's Awake/Start should set sensible defaults for the variables it needs.</li>
+</ul>
+</div>
+
+<!-- ==================== PROJECT-WIDE NOTES ==================== -->
+<div class="scene-block">
+<h2>Project-Wide Architecture Notes</h2>
+<h3>Dual Slider + Input Field Pattern</h3>
+<p>Every controllable parameter in every scene has BOTH a slider AND a text input field. They are kept in sync: typing in the field updates the slider, and dragging the slider updates the field. This sync logic is duplicated in each scene's main script — there is no shared helper class for it. If you add a new parameter, follow this same pattern.</p>
+
+<h3>Object Pooling Pattern</h3>
+<p>EMWaveManager, EFieldLines, and HallEffect all use object pooling. The pattern: pre-allocate a fixed list of GameObjects in Start(), disable unused ones, and re-enable/reposition them as needed. Never call <code>Instantiate()</code> or <code>Destroy()</code> at runtime in these scripts — always use pool activate/deactivate.</p>
+
+<h3>Material Color Changes</h3>
+<p>Peak color highlighting (EMWaves) and transparency swapping (Gaussian Surface) modify materials directly. To avoid affecting shared material assets, these scripts either use <code>material</code> (creates instance) vs <code>sharedMaterial</code> (modifies asset). Verify this is handled correctly before making material changes — unintended shared-material edits persist in the project files.</p>
+
+<h3>Scene Build Settings</h3>
+<p>All 7 scenes must be registered in File → Build Settings → Scenes In Build, in the correct order. The main menu depends on all scene name strings being correct here. If you add a scene, add it to build settings AND add its button/entry in UIController.</p>
+</div>
+
+<div class="footer">
+  Generated for EMAG-WAVES Unity Project — Branch: ampere-halleffect — May 2026<br>
+  Author: Suryash Malviya | For transition/handoff video preparation
+</div>
+</body>
+</html>
