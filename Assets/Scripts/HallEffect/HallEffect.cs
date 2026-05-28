@@ -461,7 +461,7 @@ public class HallEffect : MonoBehaviour
 
         BuildPointsForPlate(cathode, cathodeSpawnPoints);
         BuildPointsForPlate(anode, anodeSpawnPoints);
-    }
+    } 
 
     //private void BuildPointsForPlate(PlateSurface surface, List<Vector3> pointsList)
     //{
