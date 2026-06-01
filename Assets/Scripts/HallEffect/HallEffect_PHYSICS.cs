@@ -26,80 +26,321 @@ public class HallEffect_PHYSICS : MonoBehaviour
     [SerializeField] private Toggle holesToggle;
 
     [Header("Coordinate Frame")]
-    [SerializeField] private Vector3 magneticFieldAxis = Vector3.up;
-    [SerializeField] private float materialWidth = 5.0f;
-    [SerializeField] private float materialDepth = 1.0f;
-
-    [Header("Carrier Properties")]
-    [SerializeField] private float baseSpeed = 3.5f;
-    [SerializeField] private float carrierMobility = 1e-3f; // m²/(V·s) - how easily carriers respond to E-field
-    [SerializeField] private float relaxationTime = 1e-13f; // seconds - collision damping timescale
-
-    [Header("Material Properties")]
-    [SerializeField] private float permittivityRelative = 11.7f; // Silicon
-    [SerializeField] private float recombinationRate = 0.0f; // per second - charge leakage (0 = no leakage)
+    [SerializeField] private Vector3 magneticFieldAxis = new Vector3(100f, 0f, 0f);
 
     [Header("Carrier Prefabs")]
     [SerializeField] private ChargeParticle electronPrefab;
     [SerializeField] private ChargeParticle holePrefab;
 
+    [Header("Pack Mechanics")]
+    [SerializeField] private Pack packPrefab;
+    [SerializeField] private int chargesPerPack = 12;
+    [SerializeField] private int packPoolSize = 100;
+    [SerializeField] private Transform packParent;
+
+    [Header("Carrier Properties")]
+    [SerializeField] private float baseSpeed = 3.5f;
+
     [Header("Emission")]
     [SerializeField] private float minAbsVoltage = 0.1f;
     [SerializeField] private float maxAbsVoltage = 10f;
-    [SerializeField] private float maxEmissionRate = 50f;
-    [SerializeField] private int surfacePointCount = 256;
-    [Range(0.1f, 1.0f)] [SerializeField] private float emissionScale = 0.9f;
+    [SerializeField] private float maxEmissionRate = 20f;
+    [SerializeField] private int surfaceGridSide = 16;
+
+    [Range(0.1f, 1.0f)]
+    [SerializeField] private float emissionScale = 0.9f;
 
     [Header("Pooling")]
-    [SerializeField] private int poolSize = 500;
-    [SerializeField] private Transform poolParent;
+    [SerializeField] private int poolSizeElectrons = 500;
+    [SerializeField] private int poolSizeHoles = 500;
+    [SerializeField] private Transform poolParentElectrons;
+    [SerializeField] private Transform poolParentHoles;
 
-    // Physical constants
-    private const float eps0 = 8.854187817e-12f;  // F/m (permittivity of free space)
-    private const float elementaryCharge = 1.6e-19f;  // Coulombs
+    [Header("Physical Hall Model")]
+    [SerializeField] private float carrierDensity = 1e21f;
+    [SerializeField] private float carrierCharge = 1.6e-19f;
+    [SerializeField] private float conductorWidth = 0.02f;
+    [SerializeField] private float conductorThickness = 0.001f;
+    [SerializeField] private float maxCurrent = 0.02f;
 
-    // Internal state
+    [Header("Computed Hall Values")]
+    [SerializeField] private float current;
+    [SerializeField] private float currentDensity;
+    [SerializeField] private float driftVelocity;
+    [SerializeField] private float hallCoefficient;
+    [SerializeField] private float hallElectricField;
+    [SerializeField] private float hallVoltage;
+
+    [Header("Hall Equilibrium (Visual)")]
+    [SerializeField] private float visualHalfWidth = 0.5f;
+    [SerializeField] private float hallFieldGain = 5f;
+    [SerializeField] private float maxHallEField = 50f;
+
+    public float Current => current;
+    public float CurrentDensity => currentDensity;
+    public float DriftVelocity => driftVelocity;
+    public float HallElectricField => hallElectricField;
+    public float HallVoltage => hallVoltage;
+
     private readonly Queue<ChargeParticle> poolElectrons = new();
     private readonly Queue<ChargeParticle> poolHoles = new();
-    private readonly List<ChargeParticle> activeParticles = new();
+    private readonly Queue<Pack> packPool = new();
 
-    private float emitAccumulator;
-    private float netLateralCharge = 0f;  // Total accumulated charge on sides (Coulombs)
-    public float CurrentNetLateralCharge => netLateralCharge;
-
-    private ChargeParticle.CarrierType carrierType = ChargeParticle.CarrierType.Electron;
+    private readonly List<Pack> activePacks = new();
 
     private readonly List<Vector3> cathodeSpawnPoints = new();
     private readonly List<Vector3> anodeSpawnPoints = new();
-    private int spawnIndex = 0;
 
-    // Coordinate frame
-    private Vector3 flowDirection = Vector3.right;        // X-axis: direction of current
-    private Vector3 lateralDirection = Vector3.up;        // Y-axis: perpendicular to flow (deflection direction)
-    private Vector3 depthDirection = Vector3.forward;     // Z-axis: perpendicular to flow (other lateral direction)
+    private ChargeParticle.CarrierType carrierType = ChargeParticle.CarrierType.Electron;
 
-    // Calculated geometry
-    private float hallFieldArea;  // materialWidth * materialDepth (where charge accumulates)
+    private float emitAccumulator;
+    private int spawnIndex;
+
+    private Vector3 flowDirection = Vector3.right;
     private float totalMaterialLength;
+    private Vector3 hallAxis;
+    private float conductorLateralCenter;
+    private float netLateralCharge;
 
     private void Awake()
     {
-        if (poolParent == null) poolParent = transform;
+        if (poolParentElectrons == null) poolParentElectrons = transform;
+        if (poolParentHoles == null) poolParentHoles = transform;
+        if (packParent == null) packParent = transform;
 
-        PrewarmPool(electronPrefab, poolSize, poolElectrons);
-        PrewarmPool(holePrefab, poolSize, poolHoles);
-
-        if (electronsToggle != null)
-            electronsToggle.onValueChanged.AddListener(isOn => { if (isOn) SetCarrier(ChargeParticle.CarrierType.Electron); });
-
-        if (holesToggle != null)
-            holesToggle.onValueChanged.AddListener(isOn => { if (isOn) SetCarrier(ChargeParticle.CarrierType.Hole); });
-
-        if (electronsToggle != null && electronsToggle.isOn) SetCarrier(ChargeParticle.CarrierType.Electron);
-        else if (holesToggle != null && holesToggle.isOn) SetCarrier(ChargeParticle.CarrierType.Hole);
-        else SetCarrier(ChargeParticle.CarrierType.Electron);
+        PrewarmPool(electronPrefab, poolSizeElectrons, poolParentElectrons, poolElectrons);
+        PrewarmPool(holePrefab, poolSizeHoles, poolParentHoles, poolHoles);
+        PrewarmPackPool();
 
         CalculatePlateGeometry();
+    }
+
+    private void Start()
+    {
+        if (voltageSlider != null) voltageSlider.value = 0f;
+        if (magneticFieldSlider != null) magneticFieldSlider.value = 0f;
+
+        if (electronsToggle != null)
+        {
+            electronsToggle.onValueChanged.AddListener(isOn =>
+            {
+                if (isOn) SetCarrier(ChargeParticle.CarrierType.Electron);
+            });
+        }
+
+        if (holesToggle != null)
+        {
+            holesToggle.onValueChanged.AddListener(isOn =>
+            {
+                if (isOn) SetCarrier(ChargeParticle.CarrierType.Hole);
+            });
+        }
+
+        SetCarrier(ChargeParticle.CarrierType.Electron);
+    }
+
+    private void Update()
+    {
+        if (!cathode.isValid || !anode.isValid) return;
+
+        float voltage = voltageSlider != null ? voltageSlider.value : 0f;
+        float magneticField = magneticFieldSlider != null ? magneticFieldSlider.value : 0f;
+        float dt = Time.deltaTime;
+
+        UpdateHallPhysics(voltage, magneticField);
+
+        if (Mathf.Abs(voltage) >= minAbsVoltage)
+        {
+            HandlePackEmission(voltage, magneticField, dt);
+        }
+
+        UpdatePacks(voltage, magneticField, dt);
+    }
+
+    private void UpdateHallPhysics(float voltage, float magneticField)
+    {
+        float voltageFraction = Mathf.Clamp(voltage / maxAbsVoltage, -1f, 1f);
+
+        current = maxCurrent * voltageFraction;
+
+        float crossSectionArea = conductorWidth * conductorThickness;
+
+        if (carrierDensity <= 0f || carrierCharge <= 0f || crossSectionArea <= 0f)
+        {
+            currentDensity = 0f;
+            driftVelocity = 0f;
+            hallCoefficient = 0f;
+            hallElectricField = 0f;
+            hallVoltage = 0f;
+            return;
+        }
+
+        float chargeSign = carrierType == ChargeParticle.CarrierType.Hole ? 1f : -1f;
+
+        currentDensity = current / crossSectionArea;
+        hallCoefficient = chargeSign / (carrierDensity * carrierCharge);
+        driftVelocity = currentDensity / (carrierDensity * carrierCharge);
+
+        hallElectricField = hallCoefficient * currentDensity * magneticField;
+        hallVoltage = hallElectricField * conductorWidth;
+    }
+
+    private void HandlePackEmission(float voltage, float magneticField, float dt)
+    {
+        float intensity = Mathf.InverseLerp(minAbsVoltage, maxAbsVoltage, Mathf.Abs(voltage));
+        if (intensity <= 0f) return;
+
+        emitAccumulator += maxEmissionRate * intensity * dt;
+        int spawnCount = Mathf.FloorToInt(emitAccumulator);
+        emitAccumulator -= spawnCount;
+
+        Vector3 travelDir = GetFlowDirection(voltage);
+        float speed = baseSpeed * Mathf.Max(0.1f, intensity);
+
+        bool spawnAtCathode = Vector3.Dot(travelDir, flowDirection) > 0f;
+        List<Vector3> spawnPoints = spawnAtCathode ? cathodeSpawnPoints : anodeSpawnPoints;
+
+        if (spawnPoints.Count == 0) return;
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            SpawnPack(spawnPoints, travelDir, speed, voltage, magneticField);
+        }
+    }
+
+    private void SpawnPack(
+        List<Vector3> spawnPoints,
+        Vector3 travelDir,
+        float speed,
+        float voltage,
+        float magneticField)
+    {
+        Pack pack = GetPackFromPool();
+        if (pack == null) return;
+
+        Vector3 center = spawnPoints[spawnIndex++ % spawnPoints.Count];
+
+        List<ChargeParticle> charges = new();
+
+        for (int i = 0; i < chargesPerPack; i++)
+        {
+            ChargeParticle charge = GetParticleFromPool(carrierType);
+            if (charge == null) continue;
+
+            Vector3 randomOffset = Random.insideUnitSphere * 0.12f;
+
+            charge.transform.position = center + randomOffset;
+            charge.gameObject.SetActive(true);
+
+            charges.Add(charge);
+        }
+
+        Vector3 eField = GetElectricField(voltage);
+        Vector3 bField = GetMagneticField(magneticField);
+
+        pack.gameObject.SetActive(true);
+
+        pack.Initialize(
+            center,
+            charges,
+            carrierType,
+            travelDir * speed,
+            eField,
+            bField
+        );
+
+        activePacks.Add(pack);
+    }
+
+    private void UpdatePacks(float voltage, float magneticField, float dt)
+    {
+        Vector3 eField = GetElectricField(voltage);
+        Vector3 bField = GetMagneticField(magneticField);
+
+        for (int i = activePacks.Count - 1; i >= 0; i--)
+        {
+            Pack pack = activePacks[i];
+
+            if (pack == null)
+            {
+                activePacks.RemoveAt(i);
+                continue;
+            }
+
+            pack.SetFields(eField, bField);
+            pack.Step(dt);
+
+            float packLateralPos = Vector3.Dot(pack.transform.position, hallAxis);
+            float lateralDist = packLateralPos - conductorLateralCenter;
+
+            if (Mathf.Abs(lateralDist) >= visualHalfWidth)
+            {
+                float side = Mathf.Sign(lateralDist);
+                netLateralCharge += side * pack.CarrierChargeSign * carrierCharge * dt;
+
+                Vector3 pos = pack.transform.position;
+                pos -= hallAxis * (lateralDist - side * visualHalfWidth);
+                pack.transform.position = pos;
+                pack.KillOutwardLateral(hallAxis);
+            }
+
+            if (ShouldDespawnPack(pack, voltage))
+            {
+                DespawnPack(pack, i);
+            }
+        }
+    }
+
+    private Vector3 GetElectricField(float voltage)
+    {
+        Vector3 flowDir = GetFlowDirection(voltage);
+        float fieldStrength = Mathf.Abs(voltage) / Mathf.Max(totalMaterialLength, 0.001f);
+        return flowDir * fieldStrength + GetHallTransverseField();
+    }
+
+    private Vector3 GetHallTransverseField()
+    {
+        float eFieldMag = Mathf.Clamp(-netLateralCharge * hallFieldGain, -maxHallEField, maxHallEField);
+        return hallAxis * eFieldMag;
+    }
+
+    private Vector3 GetMagneticField(float magneticField)
+    {
+        return magneticFieldAxis.normalized * magneticField;
+    }
+
+    private Vector3 GetFlowDirection(float voltage)
+    {
+        Vector3 dir = flowDirection;
+
+        if (carrierType == ChargeParticle.CarrierType.Hole)
+            dir = -dir;
+
+        if (voltage < 0f)
+            dir = -dir;
+
+        return dir.normalized;
+    }
+
+    private bool ShouldDespawnPack(Pack pack, float voltage)
+    {
+        Vector3 travelDir = GetFlowDirection(voltage);
+
+        bool movingFromCathode = Vector3.Dot(travelDir, flowDirection) > 0f;
+        Vector3 origin = movingFromCathode ? cathode.center : anode.center;
+
+        Vector3 rel = pack.transform.position - origin;
+        float forwardDist = Vector3.Dot(rel, travelDir);
+
+        return forwardDist > totalMaterialLength || forwardDist < -0.5f;
+    }
+
+    private void DespawnPack(Pack pack, int index)
+    {
+        activePacks.RemoveAt(index);
+
+        pack.Despawn();
+        packPool.Enqueue(pack);
     }
 
     private void SetCarrier(ChargeParticle.CarrierType type)
@@ -117,198 +358,18 @@ public class HallEffect_PHYSICS : MonoBehaviour
             if (holesToggle != null) holesToggle.SetIsOnWithoutNotify(true);
         }
 
+        ClearActivePacks();
+    }
+
+    private void ClearActivePacks()
+    {
+        for (int i = activePacks.Count - 1; i >= 0; i--)
+        {
+            DespawnPack(activePacks[i], i);
+        }
+
+        emitAccumulator = 0f;
         netLateralCharge = 0f;
-    }
-
-    private void Update()
-    {
-        if (!cathode.isValid || !anode.isValid) return;
-
-        float voltage = (voltageSlider != null) ? voltageSlider.value : 0f;
-        if (Mathf.Abs(voltage) < minAbsVoltage) return;
-
-        float dt = Time.deltaTime;
-        if (dt <= 1e-7f) dt = Time.unscaledDeltaTime;
-
-        HandleEmission(voltage, dt);
-        UpdateParticles(voltage, dt);
-    }
-
-    private void UpdateParticles(float voltage, float dt)
-    {
-        if (activeParticles.Count == 0) return;
-
-        // Determine flow direction based on voltage and carrier type
-        Vector3 currentFlowDir = GetFlowDirection(voltage);
-
-        // Get magnetic field
-        float bFieldStrength = (magneticFieldSlider != null) ? magneticFieldSlider.value : 0f;
-        Vector3 bField = magneticFieldAxis.normalized * bFieldStrength;
-
-        // Calculate Hall E-field from accumulated charge using physics equation
-        // E_Hall = σ / (ε₀ * ε_r) where σ = charge / area
-        float hallEFieldStrength = CalculateHallEField();
-        Vector3 hallEField = lateralDirection * hallEFieldStrength;
-
-        // Origin for distance calculations
-        bool movingFromCathode = Vector3.Dot(currentFlowDir, flowDirection) > 0;
-        Vector3 origin = movingFromCathode ? cathode.center : anode.center;
-
-        // Apply charge recombination (optional leakage)
-        if (recombinationRate > 0f)
-        {
-            netLateralCharge *= Mathf.Exp(-recombinationRate * dt);
-        }
-
-        // Update each particle
-        for (int i = activeParticles.Count - 1; i >= 0; i--)
-        {
-            ChargeParticle p = activeParticles[i];
-            if (p == null) continue;
-
-            // Charge sign: electron = -1, hole = +1
-            float chargeSign = (p.Carrier == ChargeParticle.CarrierType.Hole) ? 1f : -1f;
-
-            // ==================== PHYSICS: Force Calculation ====================
-            // F = q(E_Hall + v × B)
-            // This is the complete Lorentz force with Hall field opposing deflection
-
-            Vector3 vCrossB = Vector3.Cross(p.Velocity, bField);
-            Vector3 totalEField = hallEField + vCrossB;
-            Vector3 totalForce = chargeSign * totalEField;
-
-            // ==================== Physics: Velocity Update ====================
-            // Apply force with carrier mobility (reduced mass effect)
-            // Mobility links force to velocity change: a = μ * F / q
-            p.Velocity += carrierMobility * totalForce * dt;
-
-            // Apply relaxation time damping (collision with lattice)
-            // v(t) = v(0) * exp(-t / tau)
-            float dampingFactor = Mathf.Exp(-dt / relaxationTime);
-            p.Velocity *= dampingFactor;
-
-            // ==================== Physics: Drift Velocity Maintenance ====================
-            // Maintain forward drift velocity (set by applied voltage)
-            float driftVelocity = baseSpeed * Mathf.Max(0.1f, Mathf.Abs(voltage) / maxAbsVoltage);
-            float currentForwardSpeed = Vector3.Dot(p.Velocity, currentFlowDir);
-            float speedError = driftVelocity - currentForwardSpeed;
-            p.Velocity += currentFlowDir * speedError;  // Directly set forward component
-
-            // ==================== Update Position ====================
-            p.transform.position += p.Velocity * dt;
-
-            // ==================== Boundary Enforcement ====================
-            Vector3 relPos = p.transform.position - origin;
-            float forwardDist = Vector3.Dot(relPos, currentFlowDir);
-            float lateralDist = Vector3.Dot(relPos, lateralDirection);
-            float depthDist = Vector3.Dot(relPos, depthDirection);
-
-            // Forward boundary: despawn when exiting material
-            if (forwardDist >= totalMaterialLength || forwardDist < -0.2f)
-            {
-                DespawnParticle(p, i);
-                continue;
-            }
-
-            // Lateral boundary: Y-axis (width) - where Hall effect occurs
-            float halfWidth = materialWidth * 0.5f;
-            if (Mathf.Abs(lateralDist) > halfWidth)
-            {
-                float wallSide = Mathf.Sign(lateralDist);
-
-                // Clamp position to wall
-                Vector3 correctedPos = p.transform.position;
-                correctedPos -= lateralDirection * (lateralDist - (wallSide * halfWidth));
-                p.transform.position = correctedPos;
-
-                // Kill perpendicular velocity component (particle sticks/bounces)
-                float lateralVel = Vector3.Dot(p.Velocity, lateralDirection);
-                p.Velocity -= lateralDirection * lateralVel;
-
-                // ==================== Charge Accumulation ====================
-                // When particle hits wall, accumulate charge
-                // Charge = chargeSign * elementaryCharge per particle
-                netLateralCharge += wallSide * chargeSign * elementaryCharge;
-            }
-
-            // Depth boundary: Z-axis (depth)
-            float halfDepth = materialDepth * 0.5f;
-            if (Mathf.Abs(depthDist) > halfDepth)
-            {
-                float depthSide = Mathf.Sign(depthDist);
-
-                Vector3 correctedPos = p.transform.position;
-                correctedPos -= depthDirection * (depthDist - (depthSide * halfDepth));
-                p.transform.position = correctedPos;
-
-                float depthVel = Vector3.Dot(p.Velocity, depthDirection);
-                p.Velocity -= depthDirection * depthVel;
-
-                // Accumulate charge on depth boundaries too
-                netLateralCharge += depthSide * chargeSign * elementaryCharge;
-            }
-        }
-    }
-
-    private float CalculateHallEField()
-    {
-        // Physics: E_Hall = σ / (ε₀ * ε_r)
-        // where σ = Q / A (surface charge density)
-        
-        if (hallFieldArea <= 0) return 0f;
-
-        float surfaceChargeDensity = netLateralCharge / hallFieldArea;
-        float permittivity = eps0 * permittivityRelative;
-        float hallEFieldStrength = surfaceChargeDensity / permittivity;
-
-        return hallEFieldStrength;
-    }
-
-    private Vector3 GetFlowDirection(float voltage)
-    {
-        Vector3 dir = flowDirection;
-
-        // Holes flow opposite to electrons
-        if (carrierType == ChargeParticle.CarrierType.Hole)
-            dir = -dir;
-
-        // Negative voltage reverses flow
-        if (voltage < 0f)
-            dir = -dir;
-
-        return dir.normalized;
-    }
-
-    private void HandleEmission(float voltage, float dt)
-    {
-        float intensity = Mathf.InverseLerp(minAbsVoltage, maxAbsVoltage, Mathf.Abs(voltage));
-        if (intensity <= 0f) return;
-
-        float emissionRate = maxEmissionRate * intensity;
-        emitAccumulator += emissionRate * dt;
-        int spawnCount = Mathf.FloorToInt(emitAccumulator);
-        emitAccumulator -= spawnCount;
-
-        float speed = baseSpeed * Mathf.Max(0.1f, intensity);
-        Vector3 travelDir = GetFlowDirection(voltage);
-
-        bool spawningAtCathode = Vector3.Dot(travelDir, flowDirection) > 0;
-        List<Vector3> currentSpawnPoints = spawningAtCathode ? cathodeSpawnPoints : anodeSpawnPoints;
-
-        if (currentSpawnPoints.Count == 0) return;
-
-        for (int i = 0; i < spawnCount; i++)
-        {
-            ChargeParticle p = GetParticleFromPool(carrierType);
-            if (p == null) continue;
-
-            Vector3 spawnPos = currentSpawnPoints[spawnIndex++ % currentSpawnPoints.Count];
-            p.transform.position = spawnPos;
-            p.gameObject.SetActive(true);
-            p.Initialize(carrierType, travelDir * speed, 10f);
-
-            activeParticles.Add(p);
-        }
     }
 
     private void CalculatePlateGeometry()
@@ -318,29 +379,37 @@ public class HallEffect_PHYSICS : MonoBehaviour
         cathode.isValid = ExtractBounds(ref cathode);
         anode.isValid = ExtractBounds(ref anode);
 
-        if (cathode.isValid && anode.isValid)
+        if (!cathode.isValid || !anode.isValid) return;
+
+        flowDirection = (anode.center - cathode.center).normalized;
+        totalMaterialLength = Vector3.Distance(cathode.center, anode.center);
+
+        hallAxis = Vector3.Cross(flowDirection, magneticFieldAxis.normalized);
+        if (hallAxis.sqrMagnitude < 1e-6f)
         {
-            Renderer catRenderer = cathode.rendererOverride ?? cathode.plate.GetComponentInChildren<Renderer>();
-            if (catRenderer != null)
-            {
-                Bounds b = catRenderer.bounds;
-                materialWidth = b.extents.y * 2f;
-                materialDepth = b.extents.z * 2f;
-            }
-
-            totalMaterialLength = Mathf.Abs(anode.center.x - cathode.center.x);
-            hallFieldArea = materialWidth * materialDepth;
-
-            GenerateEmissionPoints();
+            Debug.LogWarning("[HallEffect_PHYSICS] magneticFieldAxis is parallel to the conductor flow direction — v × B = 0, no deflection will occur. Set magneticFieldAxis perpendicular to the conductor axis.");
+            hallAxis = Vector3.up;
         }
+        else
+        {
+            hallAxis.Normalize();
+        }
+
+        conductorLateralCenter = Vector3.Dot(cathode.center, hallAxis);
+
+        GenerateEmissionPoints();
     }
 
     private bool ExtractBounds(ref PlateSurface surface)
     {
-        Renderer r = surface.rendererOverride != null ? surface.rendererOverride : surface.plate.GetComponentInChildren<Renderer>();
+        Renderer r = surface.rendererOverride != null
+            ? surface.rendererOverride
+            : surface.plate.GetComponentInChildren<Renderer>();
+
         if (r == null) return false;
 
         Bounds b = r.bounds;
+
         surface.center = b.center;
         surface.extents = new Vector2(b.extents.x, b.extents.y);
 
@@ -358,66 +427,91 @@ public class HallEffect_PHYSICS : MonoBehaviour
 
     private void BuildPointsForPlate(PlateSurface surface, List<Vector3> pointsList)
     {
-        Renderer r = surface.rendererOverride != null ? surface.rendererOverride : surface.plate.GetComponentInChildren<Renderer>();
+        Renderer r = surface.rendererOverride != null
+            ? surface.rendererOverride
+            : surface.plate.GetComponentInChildren<Renderer>();
+
         if (r == null) return;
 
         Bounds b = r.bounds;
 
+        int n = Mathf.Max(2, surfaceGridSide);
+
         float halfY = b.extents.y * emissionScale;
         float halfZ = b.extents.z * emissionScale;
 
-        int gridSide = Mathf.CeilToInt(Mathf.Sqrt(surfacePointCount));
-
-        for (int y = 0; y < gridSide; y++)
+        for (int y = 0; y < n; y++)
         {
-            for (int z = 0; z < gridSide; z++)
+            for (int z = 0; z < n; z++)
             {
-                float normY = gridSide > 1 ? (y / (float)(gridSide - 1)) * 2f - 1f : 0f;
-                float normZ = gridSide > 1 ? (z / (float)(gridSide - 1)) * 2f - 1f : 0f;
+                float normY = (y / (float)(n - 1)) * 2f - 1f;
+                float normZ = (z / (float)(n - 1)) * 2f - 1f;
 
-                Vector3 offset = new Vector3(0f, normY * halfY, normZ * halfZ);
-                pointsList.Add(surface.center + offset);
-
-                if (pointsList.Count >= surfacePointCount) break;
+                pointsList.Add(b.center + new Vector3(0f, normY * halfY, normZ * halfZ));
             }
-            if (pointsList.Count >= surfacePointCount) break;
-        }
-
-        for (int i = 0; i < pointsList.Count; i++)
-        {
-            Vector3 temp = pointsList[i];
-            int randomIndex = Random.Range(i, pointsList.Count);
-            pointsList[i] = pointsList[randomIndex];
-            pointsList[randomIndex] = temp;
         }
     }
 
-    private void PrewarmPool(ChargeParticle prefab, int count, Queue<ChargeParticle> pool)
+    private void PrewarmPool(
+        ChargeParticle prefab,
+        int count,
+        Transform parent,
+        Queue<ChargeParticle> pool)
     {
         if (prefab == null) return;
+        if (parent == null) parent = transform;
+
         for (int i = 0; i < count; i++)
         {
-            ChargeParticle p = Instantiate(prefab, poolParent);
+            ChargeParticle p = Instantiate(prefab, parent);
             p.gameObject.SetActive(false);
             pool.Enqueue(p);
         }
     }
 
-    private ChargeParticle GetParticleFromPool(ChargeParticle.CarrierType type)
+    private void PrewarmPackPool()
     {
-        var pool = (type == ChargeParticle.CarrierType.Electron) ? poolElectrons : poolHoles;
-        if (pool.Count > 0) return pool.Dequeue();
+        if (packPrefab == null) return;
+        if (packParent == null) packParent = transform;
 
-        var prefab = (type == ChargeParticle.CarrierType.Electron) ? electronPrefab : holePrefab;
-        return prefab != null ? Instantiate(prefab, poolParent) : null;
+        for (int i = 0; i < packPoolSize; i++)
+        {
+            Pack p = Instantiate(packPrefab, packParent);
+            p.gameObject.SetActive(false);
+            packPool.Enqueue(p);
+        }
     }
 
-    private void DespawnParticle(ChargeParticle p, int index)
+    private Pack GetPackFromPool()
     {
-        activeParticles.RemoveAt(index);
-        p.gameObject.SetActive(false);
-        if (p.Carrier == ChargeParticle.CarrierType.Electron) poolElectrons.Enqueue(p);
-        else poolHoles.Enqueue(p);
+        if (packPool.Count > 0)
+            return packPool.Dequeue();
+
+        if (packPrefab == null) return null;
+
+        return Instantiate(packPrefab, packParent != null ? packParent : transform);
+    }
+
+    private ChargeParticle GetParticleFromPool(ChargeParticle.CarrierType type)
+    {
+        Queue<ChargeParticle> pool = type == ChargeParticle.CarrierType.Electron
+            ? poolElectrons
+            : poolHoles;
+
+        ChargeParticle prefab = type == ChargeParticle.CarrierType.Electron
+            ? electronPrefab
+            : holePrefab;
+
+        Transform parent = type == ChargeParticle.CarrierType.Electron
+            ? poolParentElectrons
+            : poolParentHoles;
+
+        if (pool.Count > 0)
+            return pool.Dequeue();
+
+        if (prefab == null) return null;
+
+        return Instantiate(prefab, parent != null ? parent : transform);
     }
 
     private void OnDrawGizmos()
@@ -425,28 +519,18 @@ public class HallEffect_PHYSICS : MonoBehaviour
         if (cathode.plate == null || anode.plate == null) return;
 
         Vector3 flow = (anode.plate.position - cathode.plate.position).normalized;
-        Vector3 bField = magneticFieldAxis.normalized;
-        Vector3 lateral = Vector3.Cross(flow, bField).normalized;
+        Vector3 bDir = magneticFieldAxis.normalized;
+        Vector3 hallAxis = Vector3.Cross(flow, bDir).normalized;
 
-        Gizmos.color = Color.blue;
-        Gizmos.DrawRay(cathode.plate.position, flow * 2f);
+        Vector3 origin = cathode.plate.position;
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(cathode.plate.position, lateral * 2f);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(origin, flow * 2f);
 
         Gizmos.color = Color.green;
-        Gizmos.DrawRay(cathode.plate.position, bField * 2f);
+        Gizmos.DrawRay(origin, bDir * 2f);
 
-        if (cathodeSpawnPoints.Count > 0)
-        {
-            Gizmos.color = new Color(0, 1, 0, 0.3f);
-            foreach (var pt in cathodeSpawnPoints) Gizmos.DrawSphere(pt, 0.05f);
-        }
-
-        if (anodeSpawnPoints.Count > 0)
-        {
-            Gizmos.color = new Color(1, 0, 0, 0.3f);
-            foreach (var pt in anodeSpawnPoints) Gizmos.DrawSphere(pt, 0.05f);
-        }
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(origin, hallAxis * 2f);
     }
 }

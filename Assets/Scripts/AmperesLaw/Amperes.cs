@@ -91,6 +91,13 @@ public class Amperes : MonoBehaviour
     [SerializeField] private TMP_Dropdown circlePlaneDropdown;
     [SerializeField] private TMP_Dropdown rectPlaneDropdown;
 
+    [Header("Loop Fill Mesh (assign a child MeshFilter under each loop parent)")]
+    [SerializeField] private MeshFilter circleFillMesh;
+    [SerializeField] private MeshFilter rectFillMesh;
+    [SerializeField] private Color fillColor = new Color(0.3f, 0.65f, 1f, 0.2f);
+
+    private Material _fillMaterial;
+
 
     // Add under [Header("Circle Controls")]
     [SerializeField] private Slider circleOffsetSlider;
@@ -173,6 +180,12 @@ public class Amperes : MonoBehaviour
             rectOffsetSlider.onValueChanged.AddListener(OnRectOffsetSlider);
         }
 
+
+        // Shared semi-transparent material for both fill meshes
+        _fillMaterial = new Material(Shader.Find("Sprites/Default"));
+        _fillMaterial.color = fillColor;
+        ApplyFillMaterial(circleFillMesh);
+        ApplyFillMaterial(rectFillMesh);
 
         UpdateActiveConductor();
         RefreshActiveLoop(); // sets parents, picks LR, updates panels
@@ -360,6 +373,7 @@ public class Amperes : MonoBehaviour
         else return;
 
         UpdateLineRenderer();
+        RebuildFillMesh();
     }
 
     private void BuildCircle()
@@ -437,5 +451,57 @@ public class Amperes : MonoBehaviour
 
         if (isClosedLoop)
             _lr.SetPosition(_points.Count, _points[0]);
+    }
+
+    // =========================================================
+    // Fill Mesh
+    // =========================================================
+    private void ApplyFillMaterial(MeshFilter mf)
+    {
+        if (mf == null) return;
+        var mr = mf.GetComponent<MeshRenderer>();
+        if (mr != null) mr.sharedMaterial = _fillMaterial;
+    }
+
+    private void RebuildFillMesh()
+    {
+        MeshFilter target = (loopType == LoopType.Circle) ? circleFillMesh : rectFillMesh;
+        if (target == null || _points.Count < 3) return;
+
+        int n = _points.Count;
+
+        // Fan triangulation: vertex 0 = centroid, 1..n = perimeter points
+        Vector3 centroid = Vector3.zero;
+        foreach (var p in _points) centroid += p;
+        centroid /= n;
+
+        var verts = new Vector3[n + 1];
+        verts[0] = centroid;
+        for (int i = 0; i < n; i++) verts[i + 1] = _points[i];
+
+        var tris = new int[n * 3];
+        for (int i = 0; i < n; i++)
+        {
+            tris[i * 3 + 0] = 0;
+            tris[i * 3 + 1] = i + 1;
+            tris[i * 3 + 2] = (i + 1) % n + 1;
+        }
+
+        // Normal points along the plane's outward axis
+        Vector3 normal = orientation switch
+        {
+            PlaneOrientation.XY_Front => Vector3.back,
+            PlaneOrientation.YZ_Side  => Vector3.right,
+            _                         => Vector3.up,
+        };
+        var normals = new Vector3[verts.Length];
+        for (int i = 0; i < normals.Length; i++) normals[i] = normal;
+
+        var mesh = target.sharedMesh;
+        if (mesh == null) { mesh = new Mesh(); target.sharedMesh = mesh; }
+        mesh.Clear();
+        mesh.vertices  = verts;
+        mesh.triangles = tris;
+        mesh.normals   = normals;
     }
 }

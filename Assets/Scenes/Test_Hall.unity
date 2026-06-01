@@ -4625,6 +4625,149 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 233496664}
   m_CullTransparentMesh: 1
+--- !u!1 &241072877
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 241072878}
+  - component: {fileID: 241072882}
+  - component: {fileID: 241072881}
+  - component: {fileID: 241072880}
+  - component: {fileID: 241072879}
+  - component: {fileID: 241072883}
+  m_Layer: 0
+  m_Name: ElectronPack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &241072878
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.4, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 346615757}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &241072879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8108a4fbf1bf98438277402ff22cb06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!135 &241072880
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &241072881
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 4b40bafc4026d9c45856af2b02e1a802, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &241072882
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &241072883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241072877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 394175a15f965504f8172c72b2553ac9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  charges: []
+  carrierType: 0
+  velocity: {x: 0, y: 0, z: 0}
+  forwardDirection: {x: 0, y: 0, z: 0}
+  electricField: {x: 0, y: 0, z: 0}
+  magneticField: {x: 0, y: 0, z: 0}
+  chargeMagnitude: 1
+  mass: 1
+  deflectionMultiplier: 2
+  deformationScale: 0.2
+  stiffness: 12
+  deformationDamping: 0.85
 --- !u!1 &252848702
 GameObject:
   m_ObjectHideFlags: 0
@@ -4995,7 +5138,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 279396340}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea0eaddfd57f7e248956c01b5ee3dd28, type: 3}
+  m_Script: {fileID: 11500000, guid: 8533557b6786b66488589609cb3e6640, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cathode:
@@ -5014,24 +5157,37 @@ MonoBehaviour:
   magneticFieldSlider: {fileID: 1056111208}
   electronsToggle: {fileID: 1092137732}
   holesToggle: {fileID: 87701357}
-  magneticFieldAxis: {x: 0, y: 1, z: 0}
-  deflectionMultiplier: 2
-  macroChargeValue: 1.6e-19
-  eFieldTuningConstant: 1e+18
-  materialWidth: 13
-  emissionScale: 0.9
+  magneticFieldAxis: {x: 0, y: 0, z: 1}
   electronPrefab: {fileID: 1855088760}
   holePrefab: {fileID: 947797051}
+  packPrefab: {fileID: 241072883}
+  chargesPerPack: 12
+  packPoolSize: 100
+  packParent: {fileID: 442318909}
+  baseSpeed: 3.5
   minAbsVoltage: 0.1
   maxAbsVoltage: 10
   maxEmissionRate: 50
-  baseSpeed: 3.5
-  surfacePointCount: 256
-  relativePermittivity: 11.7
-  hallSideArea: 0.01
-  maxHallEField: 1000000
-  poolSize: 5000
-  poolParent: {fileID: 442318909}
+  surfaceGridSide: 16
+  emissionScale: 0.9
+  poolSizeElectrons: 500
+  poolSizeHoles: 500
+  poolParentElectrons: {fileID: 1657573864}
+  poolParentHoles: {fileID: 556423362}
+  carrierDensity: 1e+21
+  carrierCharge: 1.6e-19
+  conductorWidth: 0.02
+  conductorThickness: 0.001
+  maxCurrent: 0.02
+  current: 0
+  currentDensity: 0
+  driftVelocity: 0
+  hallCoefficient: 0
+  hallElectricField: 0
+  hallVoltage: 0
+  visualHalfWidth: 0.5
+  hallFieldGain: 5
+  maxHallEField: 50
 --- !u!1 &281854026
 GameObject:
   m_ObjectHideFlags: 0
@@ -6077,6 +6233,7 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1855088759}
+  - {fileID: 241072878}
   - {fileID: 947797050}
   m_Father: {fileID: 745431790}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -7385,7 +7542,9 @@ Transform:
   m_LocalPosition: {x: 879.98755, y: 362.62918, z: -8.3845415}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1657573864}
+  - {fileID: 556423362}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &452696523
@@ -8582,6 +8741,37 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &556423361
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 556423362}
+  m_Layer: 0
+  m_Name: HolesPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &556423362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 556423361}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 442318909}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &558157542
 GameObject:
   m_ObjectHideFlags: 0
@@ -26361,6 +26551,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1652192142}
   m_CullTransparentMesh: 1
+--- !u!1 &1657573863
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1657573864}
+  m_Layer: 0
+  m_Name: ElectronPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1657573864
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1657573863}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 442318909}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1669424428
 GameObject:
   m_ObjectHideFlags: 0
