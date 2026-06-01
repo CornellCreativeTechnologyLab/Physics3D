@@ -84,6 +84,9 @@ public class Faraday : MonoBehaviour
         rotationSlider.minValue = 0f;
         rotationSlider.maxValue = 360f;
 
+        frequencySlider.minValue = 0;
+        frequencySlider.maxValue = 50f;
+
         MagneticFieldSlider.value = 5f;
         lengthSlider.value = 1f;
         widthSlider.value = 1f;
@@ -92,6 +95,8 @@ public class Faraday : MonoBehaviour
 
         area = lengthSlider.value * widthSlider.value;
         magneticFieldMagnitude = MagneticFieldSlider.value;
+
+        Debug.Log($"Faraday.Awake slider value={frequencySlider.value}, min={frequencySlider.minValue}, max={frequencySlider.maxValue}");
     }
 
     void Start()
@@ -390,7 +395,7 @@ public class Faraday : MonoBehaviour
         previousFlux = currentFlux;
         FaradayLawVariables.EMF = emf;
 
-        if (emfText) emfText.text = $"EMF: " + emf.ToString("F3");
+        if (emfText) emfText.text = $"EMF: " + emf.ToString("F3")+ " V";
     }
 
     public float CurrentValue(float Resistance)
@@ -402,7 +407,7 @@ public class Faraday : MonoBehaviour
     {
         float current = CurrentValue(Resistance);
         FaradayLawVariables.Current = current;
-        currentText.text = $"Current: " + current.ToString("F4"); // more decimals helps readability
+        currentText.text = $"Current: " + current.ToString("F4") + " A"; // more decimals helps readability
 
         if (currentVisualizer != null)
         {

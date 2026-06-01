@@ -32,9 +32,9 @@ public class PausePlayFaraday : MonoBehaviour
         pausePlayButton.onClick.AddListener(OnPausePlayClicked);
 
         // 3. Setup Frequency Sliders
-        frequencySlider.maxValue = 150f;
+        frequencySlider.maxValue = 50f;
         frequencySlider.minValue = 0.0f;
-        frequencySlider.value = 50f;
+        frequencySlider.value = 1f;
 
         // Sync initial speed
         rotationSpeed = frequencySlider.value;
