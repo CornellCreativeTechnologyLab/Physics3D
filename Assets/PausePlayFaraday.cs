@@ -34,7 +34,7 @@ public class PausePlayFaraday : MonoBehaviour
         // 3. Setup Frequency Sliders
         frequencySlider.maxValue = 50f;
         frequencySlider.minValue = 0.0f;
-        frequencySlider.value = 1f;
+        frequencySlider.value = 20f;
 
         // Sync initial speed
         rotationSpeed = frequencySlider.value;

@@ -99,20 +99,24 @@ public class Amperes : MonoBehaviour
     private Material _fillMaterial;
 
 
-    // Add under [Header("Circle Controls")]
-    [SerializeField] private Slider circleOffsetSlider;
-    public float circleOffset = 0f;
+    // Three separate sliders for circle offsets (one per plane)
+    [Header("Circle Offset Sliders")]
+    [SerializeField] private Slider circleOffsetSlider_XZ;
+    [SerializeField] private Slider circleOffsetSlider_XY;
+    [SerializeField] private Slider circleOffsetSlider_YZ;
 
-    // Add under [Header("Rectangle Controls")]
-    [SerializeField] private Slider rectOffsetSlider;
-    public float rectOffset = 0f;
+    // Three separate sliders for rectangle offsets (one per plane)
+    [Header("Rectangle Offset Sliders")]
+    [SerializeField] private Slider rectOffsetSlider_XZ;
+    [SerializeField] private Slider rectOffsetSlider_XY;
+    [SerializeField] private Slider rectOffsetSlider_YZ;
 
     // ---------------- Internals ----------------
     private LineRenderer _lr;
     private readonly List<Vector3> _points = new List<Vector3>();
 
-    // Replace the single floats with these
-    private float[] circleOffsets = new float[3]; // [0]=XZ, [1]=XY, [2]=YZ
+    // Offsets per plane: [0]=XZ, [1]=XY, [2]=YZ
+    private float[] circleOffsets = new float[3];
     private float[] rectOffsets = new float[3];
 
     private void Awake()
@@ -163,23 +167,15 @@ public class Amperes : MonoBehaviour
             OnPlaneDropdownChanged(LoopType.Rectangle, rectPlaneDropdown.value);
         }
 
-        // Hook up Offset Sliders (-5 to 5 limit)
-        if (circleOffsetSlider != null)
-        {
-            circleOffsetSlider.minValue = -5f;
-            circleOffsetSlider.maxValue = 5f;
-            circleOffsetSlider.value = circleOffset;
-            circleOffsetSlider.onValueChanged.AddListener(OnCircleOffsetSlider);
-        }
+        // Hook up Circle offset sliders (-5 to 5 limit)
+        SetupOffsetSlider(circleOffsetSlider_XZ, 0, circleOffsets);
+        SetupOffsetSlider(circleOffsetSlider_XY, 1, circleOffsets);
+        SetupOffsetSlider(circleOffsetSlider_YZ, 2, circleOffsets);
 
-        if (rectOffsetSlider != null)
-        {
-            rectOffsetSlider.minValue = -5f;
-            rectOffsetSlider.maxValue = 5f;
-            rectOffsetSlider.value = rectOffset;
-            rectOffsetSlider.onValueChanged.AddListener(OnRectOffsetSlider);
-        }
-
+        // Hook up Rectangle offset sliders (-5 to 5 limit)
+        SetupOffsetSlider(rectOffsetSlider_XZ, 0, rectOffsets);
+        SetupOffsetSlider(rectOffsetSlider_XY, 1, rectOffsets);
+        SetupOffsetSlider(rectOffsetSlider_YZ, 2, rectOffsets);
 
         // Shared semi-transparent material for both fill meshes
         _fillMaterial = new Material(Shader.Find("Sprites/Default"));
@@ -192,18 +188,18 @@ public class Amperes : MonoBehaviour
         Rebuild();
     }
 
-    private void OnCircleOffsetSlider(float v)
+    // Helper to initialize an offset slider for a specific plane index and backing array
+    private void SetupOffsetSlider(Slider s, int planeIndex, float[] backingArray)
     {
-        // Save to the slot corresponding to the current plane
-        circleOffsets[(int)_circlePlane] = v;
-        Rebuild();
-    }
-
-    private void OnRectOffsetSlider(float v)
-    {
-        // Save to the slot corresponding to the current plane
-        rectOffsets[(int)_rectPlane] = v;
-        Rebuild();
+        if (s == null) return;
+        s.minValue = -5f;
+        s.maxValue = 5f;
+        s.value = backingArray[planeIndex];
+        s.onValueChanged.AddListener(v =>
+        {
+            backingArray[planeIndex] = v;
+            Rebuild();
+        });
     }
 
     private void OnValidate()
@@ -224,16 +220,12 @@ public class Amperes : MonoBehaviour
         if (which == LoopType.Circle)
         {
             _circlePlane = p;
-            // Load the saved offset for this specific plane into the slider
-            if (circleOffsetSlider != null)
-                circleOffsetSlider.value = circleOffsets[index];
+            // No single slider to update — each plane has its own slider now.
         }
         else if (which == LoopType.Rectangle)
         {
             _rectPlane = p;
-            // Load the saved offset for this specific plane into the slider
-            if (rectOffsetSlider != null)
-                rectOffsetSlider.value = rectOffsets[index];
+            // No single slider to update — each plane has its own slider now.
         }
 
         if (loopType == which)

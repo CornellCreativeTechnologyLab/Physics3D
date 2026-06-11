@@ -32,6 +32,8 @@ public class Tabs : MonoBehaviour
     [SerializeField] private GameObject creditsPanel;
     [SerializeField] private bool isCreditsShown = false;
 
+    [SerializeField] private bool useUpdatedCredits;
+
 
     //for writing a random name order
 
@@ -131,7 +133,18 @@ public class Tabs : MonoBehaviour
 
     private string RandomNameString()
     {
-        List<string> list = new List<string> { "Tamara", "Davey", "Suryash", "Liyu", "Sabrina", "Grace", "Ryan <b>Tapping</b> (5)", "Phil Krasicky"};
+        List<string> list;
+
+        if (useUpdatedCredits)
+        {
+            list = new List<string> { "Suryash", "Professor Ryan <b>Tapping</b> (5)" };
+        }
+        else
+        {
+            list = new List<string> { "Tamara", "Davey", "Suryash", "Liyu", "Sabrina", "Grace", "Ryan <b>Tapping</b> (5)", "Phil Krasicky" };
+
+        }
+
         int listSize = list.Count;
         string nameText = "";
         List<string> ourList = new List<string>();
