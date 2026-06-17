@@ -34,7 +34,7 @@ public class Faraday2 : MonoBehaviour
     [SerializeField] private LoopChargeWalker loopChargeWalker;
 
     [Header("Magnetic Field Area")]
-    [SerializeField] private SpreadLines fieldLines;
+    [SerializeField] private SpreadLines2 fieldLines;
 
     [Header("Loop Motion")]
     [SerializeField] private Transform leftPoint;

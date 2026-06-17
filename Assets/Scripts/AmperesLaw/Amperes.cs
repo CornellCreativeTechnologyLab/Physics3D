@@ -87,6 +87,10 @@ public class Amperes : MonoBehaviour
     [SerializeField] private float minSize = 0.1f;
     [SerializeField] private float maxSize = 10f;
 
+    [Header("Offset Limits")]
+    [SerializeField] private float minOffset = -5f;
+    [SerializeField] private float maxOffset = 5f;
+
     [Header("Plane Dropdowns")]
     [SerializeField] private TMP_Dropdown circlePlaneDropdown;
     [SerializeField] private TMP_Dropdown rectPlaneDropdown;
@@ -99,25 +103,26 @@ public class Amperes : MonoBehaviour
     private Material _fillMaterial;
 
 
-    // Three separate sliders for circle offsets (one per plane)
-    [Header("Circle Offset Sliders")]
-    [SerializeField] private Slider circleOffsetSlider_XZ;
-    [SerializeField] private Slider circleOffsetSlider_XY;
-    [SerializeField] private Slider circleOffsetSlider_YZ;
+    // ---------------- Circle Offset Sliders (X / Y / Z) ----------------
+    // Each slider moves the circle along one world axis. Free 3D translation.
+    [Header("Circle Offset Sliders (X / Y / Z)")]
+    [SerializeField] private Slider circleOffsetSliderX;
+    [SerializeField] private Slider circleOffsetSliderY;
+    [SerializeField] private Slider circleOffsetSliderZ;
 
-    // Three separate sliders for rectangle offsets (one per plane)
-    [Header("Rectangle Offset Sliders")]
-    [SerializeField] private Slider rectOffsetSlider_XZ;
-    [SerializeField] private Slider rectOffsetSlider_XY;
-    [SerializeField] private Slider rectOffsetSlider_YZ;
+    // ---------------- Rectangle Offset Sliders (X / Y / Z) ----------------
+    [Header("Rectangle Offset Sliders (X / Y / Z)")]
+    [SerializeField] private Slider rectOffsetSliderX;
+    [SerializeField] private Slider rectOffsetSliderY;
+    [SerializeField] private Slider rectOffsetSliderZ;
 
     // ---------------- Internals ----------------
     private LineRenderer _lr;
     private readonly List<Vector3> _points = new List<Vector3>();
 
-    // Offsets per plane: [0]=XZ, [1]=XY, [2]=YZ
-    private float[] circleOffsets = new float[3];
-    private float[] rectOffsets = new float[3];
+    // Full 3D offsets (X, Y, Z) for each loop.
+    public Vector3 circleOffset = Vector3.zero;
+    public Vector3 rectOffset = Vector3.zero;
 
     private void Awake()
     {
@@ -167,15 +172,15 @@ public class Amperes : MonoBehaviour
             OnPlaneDropdownChanged(LoopType.Rectangle, rectPlaneDropdown.value);
         }
 
-        // Hook up Circle offset sliders (-5 to 5 limit)
-        SetupOffsetSlider(circleOffsetSlider_XZ, 0, circleOffsets);
-        SetupOffsetSlider(circleOffsetSlider_XY, 1, circleOffsets);
-        SetupOffsetSlider(circleOffsetSlider_YZ, 2, circleOffsets);
+        // Hook up Circle X/Y/Z offset sliders
+        SetupOffsetSlider(circleOffsetSliderX, 0, true);
+        SetupOffsetSlider(circleOffsetSliderY, 1, true);
+        SetupOffsetSlider(circleOffsetSliderZ, 2, true);
 
-        // Hook up Rectangle offset sliders (-5 to 5 limit)
-        SetupOffsetSlider(rectOffsetSlider_XZ, 0, rectOffsets);
-        SetupOffsetSlider(rectOffsetSlider_XY, 1, rectOffsets);
-        SetupOffsetSlider(rectOffsetSlider_YZ, 2, rectOffsets);
+        // Hook up Rectangle X/Y/Z offset sliders
+        SetupOffsetSlider(rectOffsetSliderX, 0, false);
+        SetupOffsetSlider(rectOffsetSliderY, 1, false);
+        SetupOffsetSlider(rectOffsetSliderZ, 2, false);
 
         // Shared semi-transparent material for both fill meshes
         _fillMaterial = new Material(Shader.Find("Sprites/Default"));
@@ -188,16 +193,18 @@ public class Amperes : MonoBehaviour
         Rebuild();
     }
 
-    // Helper to initialize an offset slider for a specific plane index and backing array
-    private void SetupOffsetSlider(Slider s, int planeIndex, float[] backingArray)
+    // Helper to initialize an offset slider for a specific world axis (0=X,1=Y,2=Z).
+    // isCircle picks which loop's offset vector this slider drives.
+    private void SetupOffsetSlider(Slider s, int axis, bool isCircle)
     {
         if (s == null) return;
-        s.minValue = -5f;
-        s.maxValue = 5f;
-        s.value = backingArray[planeIndex];
+        s.minValue = minOffset;
+        s.maxValue = maxOffset;
+        s.value = isCircle ? circleOffset[axis] : rectOffset[axis];
         s.onValueChanged.AddListener(v =>
         {
-            backingArray[planeIndex] = v;
+            if (isCircle) circleOffset[axis] = v;
+            else rectOffset[axis] = v;
             Rebuild();
         });
     }
@@ -220,12 +227,10 @@ public class Amperes : MonoBehaviour
         if (which == LoopType.Circle)
         {
             _circlePlane = p;
-            // No single slider to update — each plane has its own slider now.
         }
         else if (which == LoopType.Rectangle)
         {
             _rectPlane = p;
-            // No single slider to update — each plane has its own slider now.
         }
 
         if (loopType == which)
@@ -411,24 +416,23 @@ public class Amperes : MonoBehaviour
 
     private Vector3 GetPointOnPlane(float u, float v)
     {
-        // Pull the specific offset for the ACTIVE plane
-        float currentOffset = (loopType == LoopType.Circle)
-            ? circleOffsets[(int)orientation]
-            : rectOffsets[(int)orientation];
-
+        // In-plane rotation first.
         float rad = shapeRotation * Mathf.Deg2Rad;
         float uRot = u * Mathf.Cos(rad) - v * Mathf.Sin(rad);
         float vRot = u * Mathf.Sin(rad) + v * Mathf.Cos(rad);
 
-        // Apply the planar offset
-        uRot += currentOffset;
-
-        return orientation switch
+        // Map the 2D (u,v) onto the chosen plane.
+        Vector3 p = orientation switch
         {
             PlaneOrientation.XY_Front => new Vector3(uRot, vRot, 0f),
             PlaneOrientation.YZ_Side => new Vector3(0f, vRot, uRot),
             _ => new Vector3(uRot, 0f, vRot),
         };
+
+        // Apply full 3D offset (X, Y, Z) so the loop can move in all directions.
+        p += (loopType == LoopType.Circle) ? circleOffset : rectOffset;
+
+        return p;
     }
 
     private void UpdateLineRenderer()
@@ -483,8 +487,8 @@ public class Amperes : MonoBehaviour
         Vector3 normal = orientation switch
         {
             PlaneOrientation.XY_Front => Vector3.back,
-            PlaneOrientation.YZ_Side  => Vector3.right,
-            _                         => Vector3.up,
+            PlaneOrientation.YZ_Side => Vector3.right,
+            _ => Vector3.up,
         };
         var normals = new Vector3[verts.Length];
         for (int i = 0; i < normals.Length; i++) normals[i] = normal;
@@ -492,8 +496,8 @@ public class Amperes : MonoBehaviour
         var mesh = target.sharedMesh;
         if (mesh == null) { mesh = new Mesh(); target.sharedMesh = mesh; }
         mesh.Clear();
-        mesh.vertices  = verts;
+        mesh.vertices = verts;
         mesh.triangles = tris;
-        mesh.normals   = normals;
+        mesh.normals = normals;
     }
 }

@@ -1,536 +1,196 @@
-//using System.Collections.Generic;
-//using UnityEngine;
-//using UnityEngine.UI;
-
-////[System.Serializable]
-////public struct PlateSurface
-////{
-////    public Transform plate;
-////    public Renderer rendererOverride;
-
-////    [HideInInspector] public Vector3 center;
-////    [HideInInspector] public Vector2 extents;
-////    [HideInInspector] public bool isValid;
-////}
-
-//public class HallEffect_PHYSICS : MonoBehaviour
-//{
-//    [Header("Plates")]
-//    [SerializeField] private PlateSurface cathode;
-//    [SerializeField] private PlateSurface anode;
-
-//    [Header("UI Controls")]
-//    [SerializeField] private Slider voltageSlider;
-//    [SerializeField] private Slider magneticFieldSlider;
-//    [SerializeField] private Toggle electronsToggle;
-//    [SerializeField] private Toggle holesToggle;
-
-//    [Header("Coordinate Frame")]
-//    [SerializeField] private Vector3 magneticFieldAxis = new Vector3(100f, 0f, 0f);
-
-//    [Header("Carrier Prefabs")]
-//    [SerializeField] private ChargeParticle electronPrefab;
-//    [SerializeField] private ChargeParticle holePrefab;
-
-//    [Header("Pack Mechanics")]
-//    [SerializeField] private Pack packPrefab;
-//    [SerializeField] private int chargesPerPack = 12;
-//    [SerializeField] private int packPoolSize = 100;
-//    [SerializeField] private Transform packParent;
-
-//    [Header("Carrier Properties")]
-//    [SerializeField] private float baseSpeed = 3.5f;
-
-//    [Header("Emission")]
-//    [SerializeField] private float minAbsVoltage = 0.1f;
-//    [SerializeField] private float maxAbsVoltage = 10f;
-//    [SerializeField] private float maxEmissionRate = 20f;
-//    [SerializeField] private int surfaceGridSide = 16;
-
-//    [Range(0.1f, 1.0f)]
-//    [SerializeField] private float emissionScale = 0.9f;
-
-//    [Header("Pooling")]
-//    [SerializeField] private int poolSizeElectrons = 500;
-//    [SerializeField] private int poolSizeHoles = 500;
-//    [SerializeField] private Transform poolParentElectrons;
-//    [SerializeField] private Transform poolParentHoles;
-
-//    [Header("Physical Hall Model")]
-//    [SerializeField] private float carrierDensity = 1e21f;
-//    [SerializeField] private float carrierCharge = 1.6e-19f;
-//    [SerializeField] private float conductorWidth = 0.02f;
-//    [SerializeField] private float conductorThickness = 0.001f;
-//    [SerializeField] private float maxCurrent = 0.02f;
-
-//    [Header("Computed Hall Values")]
-//    [SerializeField] private float current;
-//    [SerializeField] private float currentDensity;
-//    [SerializeField] private float driftVelocity;
-//    [SerializeField] private float hallCoefficient;
-//    [SerializeField] private float hallElectricField;
-//    [SerializeField] private float hallVoltage;
-
-//    [Header("Hall Equilibrium (Visual)")]
-//    [SerializeField] private float visualHalfWidth = 0.5f;
-//    [SerializeField] private float hallFieldGain = 5f;
-//    [SerializeField] private float maxHallEField = 50f;
-
-//    public float Current => current;
-//    public float CurrentDensity => currentDensity;
-//    public float DriftVelocity => driftVelocity;
-//    public float HallElectricField => hallElectricField;
-//    public float HallVoltage => hallVoltage;
-
-//    private readonly Queue<ChargeParticle> poolElectrons = new();
-//    private readonly Queue<ChargeParticle> poolHoles = new();
-//    private readonly Queue<Pack> packPool = new();
-
-//    private readonly List<Pack> activePacks = new();
-
-//    private readonly List<Vector3> cathodeSpawnPoints = new();
-//    private readonly List<Vector3> anodeSpawnPoints = new();
-
-//    private ChargeParticle.CarrierType carrierType = ChargeParticle.CarrierType.Electron;
-
-//    private float emitAccumulator;
-//    private int spawnIndex;
-
-//    private Vector3 flowDirection = Vector3.right;
-//    private float totalMaterialLength;
-//    private Vector3 hallAxis;
-//    private float conductorLateralCenter;
-//    private float netLateralCharge;
-
-//    private void Awake()
-//    {
-//        if (poolParentElectrons == null) poolParentElectrons = transform;
-//        if (poolParentHoles == null) poolParentHoles = transform;
-//        if (packParent == null) packParent = transform;
-
-//        PrewarmPool(electronPrefab, poolSizeElectrons, poolParentElectrons, poolElectrons);
-//        PrewarmPool(holePrefab, poolSizeHoles, poolParentHoles, poolHoles);
-//        PrewarmPackPool();
-
-//        CalculatePlateGeometry();
-//    }
-
-//    private void Start()
-//    {
-//        if (voltageSlider != null) voltageSlider.value = 0f;
-//        if (magneticFieldSlider != null) magneticFieldSlider.value = 0f;
-
-//        if (electronsToggle != null)
-//        {
-//            electronsToggle.onValueChanged.AddListener(isOn =>
-//            {
-//                if (isOn) SetCarrier(ChargeParticle.CarrierType.Electron);
-//            });
-//        }
-
-//        if (holesToggle != null)
-//        {
-//            holesToggle.onValueChanged.AddListener(isOn =>
-//            {
-//                if (isOn) SetCarrier(ChargeParticle.CarrierType.Hole);
-//            });
-//        }
-
-//        SetCarrier(ChargeParticle.CarrierType.Electron);
-//    }
-
-//    private void Update()
-//    {
-//        if (!cathode.isValid || !anode.isValid) return;
-
-//        float voltage = voltageSlider != null ? voltageSlider.value : 0f;
-//        float magneticField = magneticFieldSlider != null ? magneticFieldSlider.value : 0f;
-//        float dt = Time.deltaTime;
-
-//        UpdateHallPhysics(voltage, magneticField);
-
-//        if (Mathf.Abs(voltage) >= minAbsVoltage)
-//        {
-//            HandlePackEmission(voltage, magneticField, dt);
-//        }
-
-//        UpdatePacks(voltage, magneticField, dt);
-//    }
-
-//    private void UpdateHallPhysics(float voltage, float magneticField)
-//    {
-//        float voltageFraction = Mathf.Clamp(voltage / maxAbsVoltage, -1f, 1f);
-
-//        current = maxCurrent * voltageFraction;
-
-//        float crossSectionArea = conductorWidth * conductorThickness;
-
-//        if (carrierDensity <= 0f || carrierCharge <= 0f || crossSectionArea <= 0f)
-//        {
-//            currentDensity = 0f;
-//            driftVelocity = 0f;
-//            hallCoefficient = 0f;
-//            hallElectricField = 0f;
-//            hallVoltage = 0f;
-//            return;
-//        }
-
-//        float chargeSign = carrierType == ChargeParticle.CarrierType.Hole ? 1f : -1f;
-
-//        currentDensity = current / crossSectionArea;
-//        hallCoefficient = chargeSign / (carrierDensity * carrierCharge);
-//        driftVelocity = currentDensity / (carrierDensity * carrierCharge);
-
-//        hallElectricField = hallCoefficient * currentDensity * magneticField;
-//        hallVoltage = hallElectricField * conductorWidth;
-//    }
-
-//    private void HandlePackEmission(float voltage, float magneticField, float dt)
-//    {
-//        float intensity = Mathf.InverseLerp(minAbsVoltage, maxAbsVoltage, Mathf.Abs(voltage));
-//        if (intensity <= 0f) return;
-
-//        emitAccumulator += maxEmissionRate * intensity * dt;
-//        int spawnCount = Mathf.FloorToInt(emitAccumulator);
-//        emitAccumulator -= spawnCount;
-
-//        Vector3 travelDir = GetFlowDirection(voltage);
-//        float speed = baseSpeed * Mathf.Max(0.1f, intensity);
-
-//        bool spawnAtCathode = Vector3.Dot(travelDir, flowDirection) > 0f;
-//        List<Vector3> spawnPoints = spawnAtCathode ? cathodeSpawnPoints : anodeSpawnPoints;
-
-//        if (spawnPoints.Count == 0) return;
-
-//        for (int i = 0; i < spawnCount; i++)
-//        {
-//            SpawnPack(spawnPoints, travelDir, speed, voltage, magneticField);
-//        }
-//    }
-
-//    private void SpawnPack(
-//        List<Vector3> spawnPoints,
-//        Vector3 travelDir,
-//        float speed,
-//        float voltage,
-//        float magneticField)
-//    {
-//        Pack pack = GetPackFromPool();
-//        if (pack == null) return;
-
-//        Vector3 center = spawnPoints[spawnIndex++ % spawnPoints.Count];
-
-//        List<ChargeParticle> charges = new();
-
-//        for (int i = 0; i < chargesPerPack; i++)
-//        {
-//            ChargeParticle charge = GetParticleFromPool(carrierType);
-//            if (charge == null) continue;
-
-//            Vector3 randomOffset = Random.insideUnitSphere * 0.12f;
-
-//            charge.transform.position = center + randomOffset;
-//            charge.gameObject.SetActive(true);
-
-//            charges.Add(charge);
-//        }
-
-//        Vector3 eField = GetElectricField(voltage);
-//        Vector3 bField = GetMagneticField(magneticField);
-
-//        pack.gameObject.SetActive(true);
-
-//        pack.Initialize(
-//            center,
-//            charges,
-//            carrierType,
-//            travelDir * speed,
-//            eField,
-//            bField
-//        );
-
-//        activePacks.Add(pack);
-//    }
-
-//    private void UpdatePacks(float voltage, float magneticField, float dt)
-//    {
-//        Vector3 eField = GetElectricField(voltage);
-//        Vector3 bField = GetMagneticField(magneticField);
-
-//        for (int i = activePacks.Count - 1; i >= 0; i--)
-//        {
-//            Pack pack = activePacks[i];
-
-//            if (pack == null)
-//            {
-//                activePacks.RemoveAt(i);
-//                continue;
-//            }
-
-//            pack.SetFields(eField, bField);
-//            pack.Step(dt);
-
-//            float packLateralPos = Vector3.Dot(pack.transform.position, hallAxis);
-//            float lateralDist = packLateralPos - conductorLateralCenter;
-
-//            if (Mathf.Abs(lateralDist) >= visualHalfWidth)
-//            {
-//                float side = Mathf.Sign(lateralDist);
-//                netLateralCharge += side * pack.CarrierChargeSign * carrierCharge * dt;
-
-//                Vector3 pos = pack.transform.position;
-//                pos -= hallAxis * (lateralDist - side * visualHalfWidth);
-//                pack.transform.position = pos;
-//                pack.KillOutwardLateral(hallAxis);
-//            }
-
-//            if (ShouldDespawnPack(pack, voltage))
-//            {
-//                DespawnPack(pack, i);
-//            }
-//        }
-//    }
-
-//    private Vector3 GetElectricField(float voltage)
-//    {
-//        Vector3 flowDir = GetFlowDirection(voltage);
-//        float fieldStrength = Mathf.Abs(voltage) / Mathf.Max(totalMaterialLength, 0.001f);
-//        return flowDir * fieldStrength + GetHallTransverseField();
-//    }
-
-//    private Vector3 GetHallTransverseField()
-//    {
-//        float eFieldMag = Mathf.Clamp(-netLateralCharge * hallFieldGain, -maxHallEField, maxHallEField);
-//        return hallAxis * eFieldMag;
-//    }
-
-//    private Vector3 GetMagneticField(float magneticField)
-//    {
-//        return magneticFieldAxis.normalized * magneticField;
-//    }
-
-//    private Vector3 GetFlowDirection(float voltage)
-//    {
-//        Vector3 dir = flowDirection;
-
-//        if (carrierType == ChargeParticle.CarrierType.Hole)
-//            dir = -dir;
-
-//        if (voltage < 0f)
-//            dir = -dir;
-
-//        return dir.normalized;
-//    }
-
-//    private bool ShouldDespawnPack(Pack pack, float voltage)
-//    {
-//        Vector3 travelDir = GetFlowDirection(voltage);
-
-//        bool movingFromCathode = Vector3.Dot(travelDir, flowDirection) > 0f;
-//        Vector3 origin = movingFromCathode ? cathode.center : anode.center;
-
-//        Vector3 rel = pack.transform.position - origin;
-//        float forwardDist = Vector3.Dot(rel, travelDir);
-
-//        return forwardDist > totalMaterialLength || forwardDist < -0.5f;
-//    }
-
-//    private void DespawnPack(Pack pack, int index)
-//    {
-//        activePacks.RemoveAt(index);
-
-//        pack.Despawn();
-//        packPool.Enqueue(pack);
-//    }
-
-//    private void SetCarrier(ChargeParticle.CarrierType type)
-//    {
-//        carrierType = type;
-
-//        if (type == ChargeParticle.CarrierType.Electron)
-//        {
-//            if (holesToggle != null) holesToggle.SetIsOnWithoutNotify(false);
-//            if (electronsToggle != null) electronsToggle.SetIsOnWithoutNotify(true);
-//        }
-//        else
-//        {
-//            if (electronsToggle != null) electronsToggle.SetIsOnWithoutNotify(false);
-//            if (holesToggle != null) holesToggle.SetIsOnWithoutNotify(true);
-//        }
-
-//        ClearActivePacks();
-//    }
-
-//    private void ClearActivePacks()
-//    {
-//        for (int i = activePacks.Count - 1; i >= 0; i--)
-//        {
-//            DespawnPack(activePacks[i], i);
-//        }
-
-//        emitAccumulator = 0f;
-//        netLateralCharge = 0f;
-//    }
-
-//    private void CalculatePlateGeometry()
-//    {
-//        if (cathode.plate == null || anode.plate == null) return;
-
-//        cathode.isValid = ExtractBounds(ref cathode);
-//        anode.isValid = ExtractBounds(ref anode);
-
-//        if (!cathode.isValid || !anode.isValid) return;
-
-//        flowDirection = (anode.center - cathode.center).normalized;
-//        totalMaterialLength = Vector3.Distance(cathode.center, anode.center);
-
-//        hallAxis = Vector3.Cross(flowDirection, magneticFieldAxis.normalized);
-//        if (hallAxis.sqrMagnitude < 1e-6f)
-//        {
-//            Debug.LogWarning("[HallEffect_PHYSICS] magneticFieldAxis is parallel to the conductor flow direction — v × B = 0, no deflection will occur. Set magneticFieldAxis perpendicular to the conductor axis.");
-//            hallAxis = Vector3.up;
-//        }
-//        else
-//        {
-//            hallAxis.Normalize();
-//        }
-
-//        conductorLateralCenter = Vector3.Dot(cathode.center, hallAxis);
-
-//        GenerateEmissionPoints();
-//    }
-
-//    private bool ExtractBounds(ref PlateSurface surface)
-//    {
-//        Renderer r = surface.rendererOverride != null
-//            ? surface.rendererOverride
-//            : surface.plate.GetComponentInChildren<Renderer>();
-
-//        if (r == null) return false;
-
-//        Bounds b = r.bounds;
-
-//        surface.center = b.center;
-//        surface.extents = new Vector2(b.extents.x, b.extents.y);
-
-//        return true;
-//    }
-
-//    private void GenerateEmissionPoints()
-//    {
-//        cathodeSpawnPoints.Clear();
-//        anodeSpawnPoints.Clear();
-
-//        BuildPointsForPlate(cathode, cathodeSpawnPoints);
-//        BuildPointsForPlate(anode, anodeSpawnPoints);
-//    }
-
-//    private void BuildPointsForPlate(PlateSurface surface, List<Vector3> pointsList)
-//    {
-//        Renderer r = surface.rendererOverride != null
-//            ? surface.rendererOverride
-//            : surface.plate.GetComponentInChildren<Renderer>();
-
-//        if (r == null) return;
-
-//        Bounds b = r.bounds;
-
-//        int n = Mathf.Max(2, surfaceGridSide);
-
-//        float halfY = b.extents.y * emissionScale;
-//        float halfZ = b.extents.z * emissionScale;
-
-//        for (int y = 0; y < n; y++)
-//        {
-//            for (int z = 0; z < n; z++)
-//            {
-//                float normY = (y / (float)(n - 1)) * 2f - 1f;
-//                float normZ = (z / (float)(n - 1)) * 2f - 1f;
-
-//                pointsList.Add(b.center + new Vector3(0f, normY * halfY, normZ * halfZ));
-//            }
-//        }
-//    }
-
-//    private void PrewarmPool(
-//        ChargeParticle prefab,
-//        int count,
-//        Transform parent,
-//        Queue<ChargeParticle> pool)
-//    {
-//        if (prefab == null) return;
-//        if (parent == null) parent = transform;
-
-//        for (int i = 0; i < count; i++)
-//        {
-//            ChargeParticle p = Instantiate(prefab, parent);
-//            p.gameObject.SetActive(false);
-//            pool.Enqueue(p);
-//        }
-//    }
-
-//    private void PrewarmPackPool()
-//    {
-//        if (packPrefab == null) return;
-//        if (packParent == null) packParent = transform;
-
-//        for (int i = 0; i < packPoolSize; i++)
-//        {
-//            Pack p = Instantiate(packPrefab, packParent);
-//            p.gameObject.SetActive(false);
-//            packPool.Enqueue(p);
-//        }
-//    }
-
-//    private Pack GetPackFromPool()
-//    {
-//        if (packPool.Count > 0)
-//            return packPool.Dequeue();
-
-//        if (packPrefab == null) return null;
-
-//        return Instantiate(packPrefab, packParent != null ? packParent : transform);
-//    }
-
-//    private ChargeParticle GetParticleFromPool(ChargeParticle.CarrierType type)
-//    {
-//        Queue<ChargeParticle> pool = type == ChargeParticle.CarrierType.Electron
-//            ? poolElectrons
-//            : poolHoles;
-
-//        ChargeParticle prefab = type == ChargeParticle.CarrierType.Electron
-//            ? electronPrefab
-//            : holePrefab;
-
-//        Transform parent = type == ChargeParticle.CarrierType.Electron
-//            ? poolParentElectrons
-//            : poolParentHoles;
-
-//        if (pool.Count > 0)
-//            return pool.Dequeue();
-
-//        if (prefab == null) return null;
-
-//        return Instantiate(prefab, parent != null ? parent : transform);
-//    }
-
-//    private void OnDrawGizmos()
-//    {
-//        if (cathode.plate == null || anode.plate == null) return;
-
-//        Vector3 flow = (anode.plate.position - cathode.plate.position).normalized;
-//        Vector3 bDir = magneticFieldAxis.normalized;
-//        Vector3 hallAxis = Vector3.Cross(flow, bDir).normalized;
-
-//        Vector3 origin = cathode.plate.position;
-
-//        Gizmos.color = Color.yellow;
-//        Gizmos.DrawRay(origin, flow * 2f);
-
-//        Gizmos.color = Color.green;
-//        Gizmos.DrawRay(origin, bDir * 2f);
-
-//        Gizmos.color = Color.red;
-//        Gizmos.DrawRay(origin, hallAxis * 2f);
-//    }
-//}
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+/// <summary>
+/// Drives two ChargeBelts (electrons + holes) to visualize the Hall effect.
+///
+/// Carrier mode picks which belt is the MOBILE carrier:
+///   Negative -> electron belt moves & polarizes; hole belt stays put (neutral background).
+///   Positive -> hole belt moves & polarizes; electron belt stays put.
+///
+/// Voltage drives drift speed; (v x B) drives lateral polarization. Because the
+/// stationary carrier stays centred, the moving carrier accumulating on one edge
+/// produces a visible NET polarization.
+///
+/// Geometry follows ChargeBelt's local axes:
+///   +X = flow,  +Y = Hall/lateral (polarization),  +Z = B field axis.
+/// Conventional current is +X for positive voltage.
+/// </summary>
+[DisallowMultipleComponent]
+public class HallEffect : MonoBehaviour
+{
+    public enum CarrierMode { Negative, Positive } // Negative = electrons, Positive = holes
+
+    [Header("Belts")]
+    [SerializeField] private ChargeBelt electronBelt;
+    [SerializeField] private ChargeBelt holeBelt;
+
+    [Header("UI (optional)")]
+    [SerializeField] private Slider voltageSlider;
+    [SerializeField] private Slider magneticFieldSlider;
+    [SerializeField] private Toggle negativeToggle; // electrons
+    [SerializeField] private Toggle positiveToggle; // holes
+
+    [Header("Numeric Inputs (optional)")]
+    [SerializeField] private TMP_InputField voltageInput;
+    [SerializeField] private TMP_InputField magneticFieldInput;
+    [Tooltip("Number format for the input fields, e.g. \"0.##\" or \"0.00\".")]
+    [SerializeField] private string valueFormat = "0.##";
+
+    [Header("Input Ranges")]
+    [SerializeField] private float maxVoltage = 10f;
+    [SerializeField] private float maxField = 1f;
+    [Tooltip("Flip to -1 to reverse the magnetic field direction without changing the slider.")]
+    [SerializeField] private float fieldDirection = 1f;
+
+    [Header("Response")]
+    [SerializeField] private float maxDriftSpeed = 3f;
+    [Range(0f, 1f)][SerializeField] private float maxPolarization = 1f;
+    [Tooltip("Higher = snappier response; lower = smoother glide between states.")]
+    [SerializeField] private float smoothing = 8f;
+
+    [Header("State")]
+    [SerializeField] private CarrierMode mode = CarrierMode.Negative;
+
+    [Header("Readout (read-only)")]
+    [SerializeField] private float activeDriftSpeed;
+    [SerializeField] private float activePolarization;
+
+    // smoothed per-belt values
+    private float eSpeed, ePol, hSpeed, hPol;
+
+    public CarrierMode Mode => mode;
+    public ChargeBelt ActiveBelt => mode == CarrierMode.Negative ? electronBelt : holeBelt;
+
+    private void Start()
+    {
+        if (voltageSlider) voltageSlider.value = 1f;
+        if (magneticFieldSlider) magneticFieldSlider.value = 0f;
+
+        // Keep each slider and its text box in sync (both directions).
+        BindSliderInput(voltageSlider, voltageInput);
+        BindSliderInput(magneticFieldSlider, magneticFieldInput);
+
+        if (negativeToggle)
+            negativeToggle.onValueChanged.AddListener(on => { if (on) SetCarrierMode(CarrierMode.Negative); });
+        if (positiveToggle)
+            positiveToggle.onValueChanged.AddListener(on => { if (on) SetCarrierMode(CarrierMode.Positive); });
+
+        SetCarrierMode(mode);
+    }
+
+    /// <summary>Switch which carrier is mobile. Hook this to a dropdown/button too if you like.</summary>
+    public void SetCarrierMode(CarrierMode m)
+    {
+        mode = m;
+        if (m == CarrierMode.Negative)
+        {
+            if (negativeToggle) negativeToggle.SetIsOnWithoutNotify(true);
+            if (positiveToggle) positiveToggle.SetIsOnWithoutNotify(false);
+        }
+        else
+        {
+            if (positiveToggle) positiveToggle.SetIsOnWithoutNotify(true);
+            if (negativeToggle) negativeToggle.SetIsOnWithoutNotify(false);
+        }
+    }
+
+    // Convenience hooks for UnityEvents (e.g. a single toggle's onValueChanged(bool)).
+    public void SetPositiveCarriers(bool on) { if (on) SetCarrierMode(CarrierMode.Positive); }
+    public void SetNegativeCarriers(bool on) { if (on) SetCarrierMode(CarrierMode.Negative); }
+
+    /// <summary>
+    /// Two-way bind a slider and a TMP input field. Moving the slider updates the text;
+    /// committing the text (Enter / focus loss) updates the slider, clamped to its range.
+    /// SetXWithoutNotify is used to break the feedback loop between the two.
+    /// </summary>
+    private void BindSliderInput(Slider slider, TMP_InputField input)
+    {
+        if (slider == null || input == null) return;
+
+        // Seed the field with the slider's current value.
+        input.SetTextWithoutNotify(slider.value.ToString(valueFormat));
+
+        // Slider -> text.
+        slider.onValueChanged.AddListener(val =>
+            input.SetTextWithoutNotify(val.ToString(valueFormat)));
+
+        // Text -> slider (on commit).
+        input.onEndEdit.AddListener(text =>
+        {
+            if (float.TryParse(text, out float parsed))
+            {
+                float clamped = Mathf.Clamp(parsed, slider.minValue, slider.maxValue);
+                slider.value = clamped;                                 // updates the belt next frame
+                input.SetTextWithoutNotify(clamped.ToString(valueFormat)); // tidy the displayed text
+            }
+            else
+            {
+                // Unparseable entry -> restore the last good value.
+                input.SetTextWithoutNotify(slider.value.ToString(valueFormat));
+            }
+        });
+    }
+
+    private void Update()
+    {
+        float v = voltageSlider ? voltageSlider.value : 1f;
+        float b = magneticFieldSlider ? magneticFieldSlider.value : 0f;
+
+        float vNorm = maxVoltage > 1e-5f ? Mathf.Clamp(v / maxVoltage, -1f, 1f) : 0f;
+        float bNorm = maxField > 1e-5f ? Mathf.Clamp(b / maxField, -1f, 1f) * fieldDirection : 0f;
+
+        // Lateral deflection magnitude scales with |V|*|B|; its base sign flips with V and B.
+        float baseLateral = Mathf.Clamp(vNorm * bNorm, -1f, 1f) * maxPolarization;
+
+        // Carrier charge sign sends the two types to OPPOSITE ends.
+        const float electronSign = -1f; // negative carriers
+        const float holeSign = +1f;     // positive carriers
+
+        // Only the selected carrier moves & polarizes; the other stays centred & still.
+        float eSpeedTarget = 0f, ePolTarget = 0f, hSpeedTarget = 0f, hPolTarget = 0f;
+
+        if (mode == CarrierMode.Negative)
+        {
+            // Electrons move: drift against voltage (negative direction)
+            eSpeedTarget = -vNorm * maxDriftSpeed;
+            ePolTarget = electronSign * baseLateral;
+
+            // Holes stay still (stationary)
+            hSpeedTarget = 0f;
+            hPolTarget = 0f;
+        }
+        else
+        {
+            // Holes move: drift with voltage (positive direction) - OPPOSITE to electrons
+            hSpeedTarget = vNorm * maxDriftSpeed;
+            hPolTarget = holeSign * baseLateral;
+
+            // Electrons stay still (stationary)
+            eSpeedTarget = 0f;
+            ePolTarget = 0f;
+        }
+
+        // Frame-rate independent smoothing so charges glide rather than snap.
+        float k = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
+        eSpeed = Mathf.Lerp(eSpeed, eSpeedTarget, k);
+        ePol = Mathf.Lerp(ePol, ePolTarget, k);
+        hSpeed = Mathf.Lerp(hSpeed, hSpeedTarget, k);
+        hPol = Mathf.Lerp(hPol, hPolTarget, k);
+
+        if (electronBelt)
+        {
+            electronBelt.DriftSpeed = eSpeed;
+            electronBelt.LateralPolarization = ePol;
+        }
+        if (holeBelt)
+        {
+            holeBelt.DriftSpeed = hSpeed;
+            holeBelt.LateralPolarization = hPol;
+        }
+
+        activeDriftSpeed = mode == CarrierMode.Negative ? eSpeed : hSpeed;
+        activePolarization = mode == CarrierMode.Negative ? ePol : hPol;
+    }
+}
