@@ -22,7 +22,7 @@ public class Faraday2 : MonoBehaviour
     [SerializeField] private TMP_Text currentText;
 
     [Header("Physics")]
-    [SerializeField] private float magneticField = 1f;
+    [SerializeField] private float magneticField = 5f;
     [SerializeField] private float area = 1f;
     [SerializeField] private float resistance = 10f;
     [SerializeField] private int polygonSides = 4;
@@ -39,7 +39,7 @@ public class Faraday2 : MonoBehaviour
     [Header("Loop Motion")]
     [SerializeField] private Transform leftPoint;
     [SerializeField] private Transform rightPoint;
-    [SerializeField] private float moveSpeed = 0.1f;
+    [SerializeField] private float moveSpeed = 0.3f;
     [SerializeField] private bool pingPong = true;
     [SerializeField] private Slider oscSlider;
 
@@ -511,7 +511,7 @@ public class Faraday2 : MonoBehaviour
         if(oscSlider != null)
         {
             oscSlider.minValue = 0f;
-            oscSlider.maxValue = 1f;
+            oscSlider.maxValue = 0.5f;
             oscSlider.value = moveSpeed;
 
             if (isDebug) Log($"Osc Slider setup done!");
@@ -984,7 +984,7 @@ public class Faraday2 : MonoBehaviour
 
         if (isDebug) Log(output);
     }
-
+    
     private void Log(string message)
     {
         if (!isDebug)

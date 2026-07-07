@@ -13,7 +13,7 @@ public class PausePlayFaraday2 : MonoBehaviour
     [Header("Control Settings")]
     [SerializeField] private bool isPlaying = false;
     [SerializeField] private GameObject target;
-    [SerializeField] private float rotationSpeed = 1f;
+    [SerializeField] private float rotationSpeed = 0.3f;
 
     // References to the Faraday script and its UI
     private Faraday faradayScript;
@@ -32,9 +32,9 @@ public class PausePlayFaraday2 : MonoBehaviour
         pausePlayButton.onClick.AddListener(OnPausePlayClicked);
 
         // 3. Setup Frequency Sliders
-        frequencySlider.maxValue = 1f;
-        frequencySlider.minValue = 0.0f;
-        frequencySlider.value = 0.1f;
+        //frequencySlider.maxValue = 1f;
+        //frequencySlider.minValue = 0.0f;
+        //frequencySlider.value = 0.1f;
 
         // Sync initial speed
         rotationSpeed = frequencySlider.value;

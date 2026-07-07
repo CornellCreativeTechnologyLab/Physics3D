@@ -1,0 +1,92 @@
+{
+    "pairs": [
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\android-arm64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\android-arm64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\android-arm64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\android-arm64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\android-x64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\android-x64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\android-x64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\android-x64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\ios-arm64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\ios-arm64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\ios-arm64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\ios-arm64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\linux-x64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\linux-x64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\linux-x64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\linux-x64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-arm64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-arm64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-arm64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-arm64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-universal",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-universal"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-universal.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-universal.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-x64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-x64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\osx-x64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\osx-x64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\setup",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\setup"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\setup.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\setup.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\visionos-arm64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\visionos-arm64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\visionos-arm64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\visionos-arm64.meta"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\win-x64",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\win-x64"
+        },
+        {
+            "source": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LlamaLib-v2.0.5\\win-x64.meta",
+            "target": "S:\\Unity\\Physics3DCTL\\LLMUnityBuild\\win-x64.meta"
+        },
+        {
+            "source": "",
+            "target": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LLMManager.json"
+        },
+        {
+            "source": "",
+            "target": "S:/Unity/Physics3DCTL/Assets/StreamingAssets/LLMManager.json.meta"
+        }
+    ]
+}

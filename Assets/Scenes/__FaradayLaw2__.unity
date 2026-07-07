@@ -3064,7 +3064,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6436060773059403962, guid: 207922ef3aacec44abcf175bea7d897e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12023,6 +12023,7 @@ MonoBehaviour:
   stepNumerator: 5
   stepClamp: {x: 1, y: 51}
   initialPoolSize: 500
+  maxLines: 5000
   animationSpeed: 8
   retireEpsilon: 0.05
   spawnFromCenter: 1
@@ -14854,6 +14855,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1205485915}
+  - component: {fileID: 1205485916}
   m_Layer: 0
   m_Name: x-axis_text_model
   m_TagString: Untagged
@@ -14877,6 +14879,21 @@ Transform:
   - {fileID: 426194551}
   m_Father: {fileID: 618944992}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &1205485916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1205485914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fb0c4b029a729b47a54407dbd1ba651, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetCamera: {fileID: 1597144168}
+  lockPosition: 1
+  faceAway: 1
 --- !u!1 &1206134485
 GameObject:
   m_ObjectHideFlags: 0
@@ -15342,9 +15359,9 @@ MonoBehaviour:
   m_HandleRect: {fileID: 317422806}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 1
+  m_MaxValue: 0.1
   m_WholeNumbers: 0
-  m_Value: 0.318
+  m_Value: 0.1
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -16214,7 +16231,7 @@ MonoBehaviour:
   fieldLines: {fileID: 940957946}
   leftPoint: {fileID: 437762345}
   rightPoint: {fileID: 1513462307}
-  moveSpeed: 0.1
+  moveSpeed: 0.09
   pingPong: 1
   oscSlider: {fileID: 1253046646}
   loopRotationOffsetEuler: {x: 90, y: 0, z: 0}
@@ -16351,7 +16368,7 @@ MonoBehaviour:
   buttonText: {fileID: 1420833780}
   isPlaying: 0
   target: {fileID: 1858304332}
-  rotationSpeed: 0.1
+  rotationSpeed: 0.3
   frequencySlider: {fileID: 1253046646}
   frequencyInput: {fileID: 276912826}
 --- !u!1 &1340978049
@@ -20995,7 +21012,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1233518318}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 1
+  m_MaxValue: 5
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -25636,7 +25653,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chargePrefab: {fileID: 440206681}
   chargeCount: 6
-  currentSensitivity: 1
+  currentSensitivity: 10
 --- !u!1 &1864893127
 GameObject:
   m_ObjectHideFlags: 0
@@ -28054,7 +28071,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Oscillation Speed
+  m_text: Linear Velocity
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

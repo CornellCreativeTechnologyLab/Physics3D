@@ -36,7 +36,7 @@ public class Amperes : MonoBehaviour
     [SerializeField] private Toggle toroidToggle;
 
     [Header("State")]
-    public ConductorType conductorType = ConductorType.NoWire;
+    public ConductorType conductorType = ConductorType.Line;  // Change from NoWire to Line (or Sheet, Solenoid, Toroid)
 
     // ---------------- Loop Type ----------------
     [Header("Loop Type (Toggles)")]
@@ -88,8 +88,8 @@ public class Amperes : MonoBehaviour
     [SerializeField] private float maxSize = 10f;
 
     [Header("Offset Limits")]
-    [SerializeField] private float minOffset = -5f;
-    [SerializeField] private float maxOffset = 5f;
+    [SerializeField] private float minOffset = -20f;
+    [SerializeField] private float maxOffset = 20f;
 
     [Header("Plane Dropdowns")]
     [SerializeField] private TMP_Dropdown circlePlaneDropdown;
@@ -99,6 +99,10 @@ public class Amperes : MonoBehaviour
     [SerializeField] private MeshFilter circleFillMesh;
     [SerializeField] private MeshFilter rectFillMesh;
     [SerializeField] private Color fillColor = new Color(0.3f, 0.65f, 1f, 0.2f);
+
+    // *** ADDING NEW VARIABLES ***
+    [Header("Loop Colors")]
+    [SerializeField] private Color loopLineColor = new Color(0.3f, 0.65f, 1f, 1f);
 
     private Material _fillMaterial;
 
@@ -298,7 +302,17 @@ public class Amperes : MonoBehaviour
         }
 
         _lr = active.GetComponentInChildren<LineRenderer>(true);
-        if (_lr != null) _lr.useWorldSpace = false;
+        if (_lr != null)
+        {
+            _lr.useWorldSpace = false;
+
+            // apply simple uniform color
+            _lr.startColor = loopLineColor;
+            _lr.endColor = loopLineColor;
+
+            // if the LineRenderer uses a material, set its color too (optional)
+            if (_lr.material != null) _lr.material.color = loopLineColor;
+        }
     }
 
     // =========================================================

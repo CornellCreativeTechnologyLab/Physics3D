@@ -4232,6 +4232,7 @@ MonoBehaviour:
   creditsButton: {fileID: 144873876}
   creditsPanel: {fileID: 2131930219}
   isCreditsShown: 0
+  useUpdatedCredits: 0
   nameLabel: {fileID: 1549790443}
   nameEasterEgg: {fileID: 1148896585}
   mobileScale: 10
@@ -10117,7 +10118,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2052098839}
-  - component: {fileID: 2052098841}
   - component: {fileID: 2052098842}
   m_Layer: 0
   m_Name: CameraSystem
@@ -10143,25 +10143,6 @@ Transform:
   - {fileID: 146916231}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -19.3, y: 0, z: 0}
---- !u!114 &2052098841
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2052098838}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2d79d647ce4f1c43b7b5d9ea037bdb0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  useEdgeScrolling: 0
-  cinemachineVirtualCamera: {fileID: 0}
-  fieldOfViewMax: 40
-  fieldOfViewMin: 10
-  target: {fileID: 440659247}
-  zoomSpeed: 6
-  rotationSpeed: 5
 --- !u!114 &2052098842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12163,8 +12144,45 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2824719699268278816, guid: 85926367e3e5bab449944093a61055d4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1852522387948435711}
   m_SourcePrefab: {fileID: 100100000, guid: 85926367e3e5bab449944093a61055d4, type: 3}
+--- !u!1 &1852522387948435710 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2824719699268278816, guid: 85926367e3e5bab449944093a61055d4, type: 3}
+  m_PrefabInstance: {fileID: 1852522387948435709}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1852522387948435711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1852522387948435710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46ba406b2978056489b2fe0b41fd9019, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDebug: 1
+  linePrefab: {fileID: 1769159155}
+  poolContainer: {fileID: 1751506648}
+  visualRoot: {fileID: 0}
+  electricFieldSlider: {fileID: 1632995608}
+  toggleWithField: []
+  alsoTogglePrefabLineRenderer: 1
+  halfExtent: 10
+  stepNumerator: 5
+  stepClamp: {x: 1, y: 51}
+  initialPoolSize: 500
+  maxLines: 5000
+  animationSpeed: 8
+  retireEpsilon: 0.05
+  spawnFromCenter: 1
+  debugLogs: 1
+  debugLineCreation: 0
 --- !u!33 &2068922553108427557
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -12785,9 +12803,17 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 3745622627878074569}
+    - target: {fileID: 1326840269538574336, guid: ad33ec4654668b54284fb7b71b1171ce, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5439625606624234359, guid: ad33ec4654668b54284fb7b71b1171ce, type: 3}
       propertyPath: m_Name
       value: ElectricFieldLineBase (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5439625606624234359, guid: ad33ec4654668b54284fb7b71b1171ce, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6142842825936338779, guid: ad33ec4654668b54284fb7b71b1171ce, type: 3}
       propertyPath: m_LocalPosition.x
@@ -12829,7 +12855,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1326840269538574336, guid: ad33ec4654668b54284fb7b71b1171ce, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
