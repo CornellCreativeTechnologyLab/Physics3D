@@ -1408,7 +1408,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146916229}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2100532, y: -0.65522134, z: 0.19707435, w: 0.69837266}
+  m_LocalRotation: {x: 0.04830413, y: 0.68225896, z: -0.045262434, w: 0.7281077}
   m_LocalPosition: {x: 0, y: 0, z: -136.93216}
   m_LocalScale: {x: 13.693216, y: 13.693214, z: 13.693214}
   m_ConstrainProportionsScale: 0
@@ -1497,7 +1497,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 901777803}
   toggleTransition: 1
   graphic: {fileID: 2128756770}
-  m_Group: {fileID: 1798894857}
+  m_Group: {fileID: 1066828516}
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -1512,7 +1512,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &148861894
 GameObject:
@@ -1897,7 +1897,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &160504474
 GameObject:
@@ -3009,7 +3009,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 35331235}
   toggleTransition: 1
   graphic: {fileID: 925026191}
-  m_Group: {fileID: 1798894857}
+  m_Group: {fileID: 1066828516}
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3024,7 +3024,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &334933820
 GameObject:
@@ -3241,7 +3241,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1677282375}
   toggleTransition: 1
   graphic: {fileID: 2091021034}
-  m_Group: {fileID: 1798894857}
+  m_Group: {fileID: 1066828516}
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3256,7 +3256,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &345077556
 GameObject:
@@ -3925,7 +3925,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &474711536
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8307,7 +8307,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &925026189
 GameObject:
@@ -8343,7 +8343,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.06, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &925026191
@@ -9078,6 +9078,55 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   color: 0
   eraseRenderer: 0
+--- !u!1 &1066828514
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1066828515}
+  - component: {fileID: 1066828516}
+  m_Layer: 5
+  m_Name: GSToggleGroup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1066828515
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066828514}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1330974487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -740.2, y: 43.00001}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1066828516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066828514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fafe2cfe61f6974895a912c3755e8f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AllowSwitchOff: 0
 --- !u!1 &1073926540
 GameObject:
   m_ObjectHideFlags: 0
@@ -9159,7 +9208,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1484476264}
   toggleTransition: 1
   graphic: {fileID: 39826842}
-  m_Group: {fileID: 1798894857}
+  m_Group: {fileID: 1066828516}
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -9174,19 +9223,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1047187538}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 1
 --- !u!1 &1080126164
 GameObject:
@@ -10402,7 +10439,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 1
 --- !u!1 &1209128347
 GameObject:
@@ -10485,7 +10522,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 516553089}
   toggleTransition: 1
   graphic: {fileID: 474711537}
-  m_Group: {fileID: 1798894857}
+  m_Group: {fileID: 1066828516}
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -10500,7 +10537,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &1227094324
 GameObject:
@@ -11224,7 +11261,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1320436236
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11451,6 +11488,7 @@ RectTransform:
   m_Children:
   - {fileID: 764344851}
   - {fileID: 1942382098}
+  - {fileID: 1066828515}
   m_Father: {fileID: 2085102508164150631}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -11505,7 +11543,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1330974486}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc8214b452c71ad489517878f706eda2, type: 3}
+  m_Script: {fileID: 11500000, guid: b3a55bd0b191c424aae5e44f64d0006f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   pointCharge: {fileID: 1923980321}
@@ -11543,7 +11581,7 @@ MonoBehaviour:
   cubeRadiusInput: {fileID: 1295566820}
   cubeAreaInput: {fileID: 1395917675}
   defaultChargeMaterial: {fileID: 2100000, guid: 6dc024da82c62a84cb80183855ee80ad, type: 2}
-  smallChargeMaterial: {fileID: 2100000, guid: 509cb01f1459bf04a8a20f45a206b642, type: 2}
+  smallChargeMaterial: {fileID: 2100000, guid: e9a294d84c4fc194cb16b04dd00123c3, type: 2}
   focusCharge: []
   transparencyOriginalGS: 0
   transparencyOriginalCharge: 0
@@ -13737,7 +13775,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1597144166}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2100532, y: -0.65522134, z: 0.19707437, w: 0.69837266}
+  m_LocalRotation: {x: 0.04830413, y: 0.682259, z: -0.045262437, w: 0.72810763}
   m_LocalPosition: {x: 0, y: 0, z: -136.93216}
   m_LocalScale: {x: 0.78000003, y: 0.65999997, z: 1}
   m_ConstrainProportionsScale: 0
@@ -14081,7 +14119,7 @@ Transform:
   m_GameObject: {fileID: 1627401178}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 615.273, y: 271.59583, z: -123.41974}
+  m_LocalPosition: {x: 27, y: 9.7, z: -98.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14997,7 +15035,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
+        m_CallState: 1
   m_IsOn: 0
 --- !u!1 &1779792187
 GameObject:
@@ -17141,7 +17179,7 @@ Transform:
   m_GameObject: {fileID: 2052098838}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 418.3, y: 217.4, z: 104.1}
+  m_LocalPosition: {x: 454.1, y: 197.5, z: 104.1}
   m_LocalScale: {x: 0.07302886, y: 0.07302886, z: 0.07302886}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17184,7 +17222,7 @@ MonoBehaviour:
   zoomSpeedMouse: 60
   zoomSpeedTouch: 30
   rotationSpeed: 4
-  targetDist: 0
+  targetDist: 30
 --- !u!1 &2060019158
 GameObject:
   m_ObjectHideFlags: 0

@@ -78,7 +78,7 @@ public class CurrentChargeSize
 
 
 
-public class Control : MonoBehaviour
+public class GSControl : MonoBehaviour
 {
     [Header("Charge and Gaussian Surfaces")]
     [SerializeField] public GameObject pointCharge;
